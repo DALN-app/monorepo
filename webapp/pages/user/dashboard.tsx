@@ -1,3 +1,5 @@
+import { watch } from "fs";
+
 import {
   Box,
   Button,
@@ -9,9 +11,8 @@ import {
   Heading,
   SimpleGrid,
 } from "@chakra-ui/react";
-import axios from "axios";
+import { BigNumber } from "ethers";
 import Head from "next/head";
-import { QueryFunction, useQuery } from "react-query";
 import { useAccount } from "wagmi";
 
 import { NextPageWithLayout } from "../_app";
@@ -19,35 +20,17 @@ import { NextPageWithLayout } from "../_app";
 import { DashboardStat, BurnSBT } from "~~/components/Dashboard";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import PageTransition from "~~/components/PageTransition";
-import { useBasicSpnFactoryMetadataUri } from "~~/generated/wagmiTypes";
-import { watch } from "fs";
-
-const getTableLandMetadata: QueryFunction<any, string[]> = async ({
-  queryKey,
-}) => {
-  const response = await axios.get(queryKey[0]);
-  return response.data;
-};
+import { useBasicFevmDalnTokenOfOwnerByIndex } from "~~/generated/wagmiTypes";
 
 const Dashboard: NextPageWithLayout = () => {
-  const tablelandMetadataURI = useBasicSpnFactoryMetadataUri({
-    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-  });
-
   const { address } = useAccount();
 
-  const findByAddress = encodeURIComponent(
-    ` WHERE address='${address?.toLowerCase()}'`
-  );
-
-  const tablelandMetadata = useQuery(
-    [`${tablelandMetadataURI.data}${findByAddress}` || ""],
-    getTableLandMetadata,
-    {
-      enabled: !!tablelandMetadataURI.data && !!address,
-      refetchInterval: 5000,
-    }
-  );
+  const userTokenIdQuery = useBasicFevmDalnTokenOfOwnerByIndex({
+    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
+    args: [address || "0x0", BigNumber.from(0)],
+    enabled: !!address,
+    watch: true,
+  });
 
   return (
     <>
@@ -66,7 +49,7 @@ const Dashboard: NextPageWithLayout = () => {
           <Card w="full">
             <CardHeader>
               <Flex justifyContent="flex-end" alignItems="center">
-                <BurnSBT tokenId={tablelandMetadata?.data?.[0]?.id} />
+                <BurnSBT tokenId={userTokenIdQuery.data} />
               </Flex>
 
               <Heading
@@ -86,7 +69,7 @@ const Dashboard: NextPageWithLayout = () => {
                 <DashboardStat label="Decryption Sessions" number="5" />
                 <DashboardStat
                   label="Token ID"
-                  number={tablelandMetadata?.data?.[0]?.id}
+                  number={userTokenIdQuery.data?.toString() || "Error"}
                 />
                 <DashboardStat
                   label="SBT Contract"
@@ -101,7 +84,7 @@ const Dashboard: NextPageWithLayout = () => {
                         .NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`
                     ).slice(-5)
                   }
-                  href={`https://mumbai.polygonscan.com/address/${
+                  href={`https://beryx.zondax.ch/v1/search/fil/hyperspace/address/${
                     process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as string
                   }`}
                   isExternalHref

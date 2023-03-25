@@ -12,7 +12,7 @@ import type { AppProps } from "next/app";
 import { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { polygon, localhost, polygonMumbai } from "wagmi/chains";
+import { filecoinHyperspace } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 
@@ -30,9 +30,9 @@ const queryClient = new QueryClient();
 const { chains, provider, webSocketProvider } = configureChains(
   [
     ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-      ? [polygonMumbai]
+      ? [filecoinHyperspace]
       : []),
-    polygonMumbai,
+    filecoinHyperspace,
   ],
   [
     alchemyProvider({
@@ -43,7 +43,7 @@ const { chains, provider, webSocketProvider } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "RainbowKit App",
+  appName: "DALN",
   chains,
 });
 

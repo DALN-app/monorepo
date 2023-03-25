@@ -17,11 +17,7 @@ import DataBaseSvgComponent from "~~/components/DataBaseSvgComponent";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import SuccessSvgComponent from "~~/components/SuccessSvgComponent";
 import UploadUserDataProgressBar from "~~/components/UploadUserDataProgressBar";
-import {
-  basicSpnFactoryABI,
-  spnFactoryABI,
-  usePrepareBasicSpnFactorySafeMint,
-} from "~~/generated/wagmiTypes";
+import { basicFevmDalnABI } from "~~/generated/wagmiTypes";
 import usePrepareWriteAndWaitTx from "~~/hooks/usePrepareWriteAndWaitTx";
 import { NextPageWithLayout } from "~~/pages/_app";
 
@@ -75,14 +71,24 @@ const UploadDataPage: NextPageWithLayout = () => {
 
   const cid = sessionStorage.getItem("plaidItemId");
 
-  const mintToken = usePrepareWriteAndWaitTx({
-    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    abi: basicSpnFactoryABI,
-    functionName: "safeMint",
-    args: [userAddress, cid],
-    enabled:
-      !!process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS && !!userAddress && !!cid,
-  });
+  const mintToken = usePrepareWriteAndWaitTx(
+    {
+      address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
+      abi: basicFevmDalnABI,
+      functionName: "safeMint",
+      args: [cid],
+      enabled:
+        !!process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS &&
+        !!userAddress &&
+        !!cid,
+    },
+    {
+      onTxConfirmed: () => {
+        setStep("mintSuccess");
+        sessionStorage.removeItem("plaidItemId");
+      },
+    }
+  );
 
   useEffect(() => {
     if (step === "processing") {
@@ -115,8 +121,6 @@ const UploadDataPage: NextPageWithLayout = () => {
       setStep("minting");
       try {
         await mintToken.writeAsync();
-        setStep("mintSuccess");
-        sessionStorage.removeItem("plaidItemId");
       } catch (e) {
         console.error(e);
         setStep("uploadSuccess");

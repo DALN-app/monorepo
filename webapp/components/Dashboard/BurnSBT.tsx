@@ -8,20 +8,20 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from "@chakra-ui/react";
+import { BigNumber } from "ethers";
 import { useRouter } from "next/router";
 import { Component, ComponentProps, useEffect, useRef } from "react";
-import { useAccount, useContractRead } from "wagmi";
+import { useAccount } from "wagmi";
 
 import {
-  basicSpnFactoryABI,
-  erc20ABI,
-  useBasicSpnFactoryBalanceOf,
+  basicFevmDalnABI,
+  useBasicFevmDalnBalanceOf,
 } from "~~/generated/wagmiTypes";
 import usePrepareWriteAndWaitTx from "~~/hooks/usePrepareWriteAndWaitTx";
 
 interface BurnSBTProps extends ComponentProps<typeof Button> {
   alertDialogProps?: Component<typeof AlertDialog>;
-  tokenId?: string;
+  tokenId?: BigNumber;
 }
 
 export default function BurnSBT({
@@ -34,7 +34,7 @@ export default function BurnSBT({
   const cancelRef = useRef(null);
   const { address } = useAccount();
 
-  const balanceQuery = useBasicSpnFactoryBalanceOf({
+  const balanceQuery = useBasicFevmDalnBalanceOf({
     address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
     args: [address || "0x0"],
     enabled: !!address,
@@ -43,8 +43,8 @@ export default function BurnSBT({
 
   const userBurn = usePrepareWriteAndWaitTx({
     address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    abi: basicSpnFactoryABI,
-    functionName: "userBurn",
+    abi: basicFevmDalnABI,
+    functionName: "burn",
     args: [tokenId],
     enabled:
       !!process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS && tokenId !== undefined,

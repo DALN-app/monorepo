@@ -8,16 +8,17 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { erc20ABI, useAccount, useContractRead } from "wagmi";
+import { useAccount, useContractRead } from "wagmi";
 
 import PageTransition from "~~/components/PageTransition";
+import { basicFevmDalnABI } from "~~/generated/wagmiTypes";
 
 export default function UserHome() {
   const { address } = useAccount();
 
   const balanceQuery = useContractRead({
     address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    abi: erc20ABI,
+    abi: basicFevmDalnABI,
     functionName: "balanceOf",
     args: [address || "0x0"],
     enabled: !!address,

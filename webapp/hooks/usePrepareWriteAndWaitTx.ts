@@ -7,7 +7,10 @@ import {
 } from "wagmi";
 
 export default function usePrepareWriteAndWaitTx(
-  prepareOptions: UsePrepareContractWriteConfig
+  prepareOptions: UsePrepareContractWriteConfig,
+  options?: {
+    onTxConfirmed?: () => void;
+  }
 ) {
   const isValid =
     prepareOptions &&
@@ -27,6 +30,7 @@ export default function usePrepareWriteAndWaitTx(
   );
   const resultTx = useWaitForTransaction({
     hash: writeMutation.data?.hash,
+    onSuccess: options?.onTxConfirmed,
   });
 
   return {
