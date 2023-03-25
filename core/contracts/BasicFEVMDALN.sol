@@ -3,11 +3,10 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Basic_FEVM_DALN is ERC721, ERC721Burnable, ERC721Enumerable, AccessControl {
+contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
   using Counters for Counters.Counter;
 
   bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -106,14 +105,16 @@ contract Basic_FEVM_DALN is ERC721, ERC721Burnable, ERC721Enumerable, AccessCont
   function _beforeTokenTransfer(
     address from,
     address to,
-    uint256 /*tokenId*/,
-    uint256 /*batchSize*/
-  ) internal pure override(ERC721, ERC721Enumerable) {
+    uint256 tokenId,
+    uint256 batchSize
+  ) internal virtual override(ERC721, ERC721Enumerable) {
     require(from == address(0) || to == address(0), "This a soulbound token");
+    super._beforeTokenTransfer(from, to, tokenId, batchSize);
   }
 
-  function _burn(uint256 tokenId) internal override(ERC721) {
-    super._burn(tokenId);
+  function burn(uint256 tokenId) public virtual {
+    require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+    _burn(tokenId);
 
     delete _tokenInfos[tokenId];
 
