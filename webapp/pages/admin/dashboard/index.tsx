@@ -1,23 +1,46 @@
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Box,
-  Button,
   Card,
   CardBody,
   CardHeader,
   Container,
   Flex,
   Heading,
-  SimpleGrid,
+  Text,
+  Wrap,
 } from "@chakra-ui/react";
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
-import { DashboardStat, BurnSBT } from "~~/components/Dashboard";
+import { AdminDataTable } from "~~/components/AdminDashboard";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import NavBar from "~~/components/NavBar";
 import PageTransition from "~~/components/PageTransition";
+import BackChevronSvgComponent from "~~/components/svgComponents/BackChevronSvgComponent";
 import { NextPageWithLayout } from "~~/pages/_app";
 
 const AdminDashboard: NextPageWithLayout = () => {
+  const router = useRouter();
+
+  const [successPayment, setSuccessPayment] = useState<{
+    totalPaid: number;
+    decryptedDataAmount: number;
+  } | null>({ totalPaid: 12, decryptedDataAmount: 1 });
+
+  const onPaymentSuccess = ({
+    totalPaid,
+    decryptedDataAmount,
+  }: {
+    totalPaid: number;
+    decryptedDataAmount: number;
+  }) => {
+    setSuccessPayment({ totalPaid, decryptedDataAmount });
+  };
   return (
     <>
       <Head>
@@ -32,20 +55,55 @@ const AdminDashboard: NextPageWithLayout = () => {
             lg: 24,
           }}
         >
-          <Card w="full">
+          <Card w="full" size="lg">
             <CardHeader>
+              <Flex
+                alignItems={"center"}
+                onClick={() => {
+                  router.back();
+                }}
+              >
+                <BackChevronSvgComponent />
+                <Text ml={4}>Back to dashboard</Text>
+              </Flex>
               <Heading
                 as="h1"
                 size="md"
                 fontWeight={500}
                 textAlign="center"
-                mb={2}
+                mt={4}
               >
-                Manage DALN data
+                Manage DALN Data
               </Heading>
+              {successPayment ? (
+                <Flex justifyContent={"center"} mt={4}>
+                  <Alert
+                    w={400}
+                    status="success"
+                    borderRadius={12}
+                    justifyContent={"center"}
+                    borderColor={"#5BA85A"}
+                    borderWidth={1}
+                  >
+                    <Wrap>
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle color={"#5BA85A"}>
+                          {`Successfully decrypted ${successPayment.decryptedDataAmount} data set`}
+                        </AlertTitle>
+                        <AlertDescription color={"#5BA85A"}>
+                          {`  Total ${successPayment.totalPaid} Matic paid to token holder`}
+                        </AlertDescription>
+                      </Box>
+                    </Wrap>
+                  </Alert>
+                </Flex>
+              ) : null}
             </CardHeader>
 
-            <CardBody>TODO: Table</CardBody>
+            <CardBody>
+              <AdminDataTable onPaymentSuccess={onPaymentSuccess} />
+            </CardBody>
           </Card>
         </Container>
       </PageTransition>
