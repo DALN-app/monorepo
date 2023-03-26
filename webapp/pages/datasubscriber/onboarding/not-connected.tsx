@@ -6,8 +6,8 @@ import { useAccount } from "wagmi";
 
 import OnBoardingCard from "~~/components/OnBoardingCard";
 import OnBoardingContentPiece from "~~/components/OnBoardingContentPiece";
-import OnboardingGraphSvgComponent from "~~/components/OnboardingGraphSvgComponent";
 import OnBoardingHeaderComponent from "~~/components/OnBoardingHeaderComponent";
+import OnboardingGraphSvgComponent from "~~/components/svgComponents/OnboardingGraphSvgComponent";
 const OnboardingNotConnected = () => {
   const { isConnected } = useAccount();
   const router = useRouter();

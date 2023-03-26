@@ -13,9 +13,9 @@ import Head from "next/head";
 import Image from "next/image";
 import NextLink from "next/link";
 
-import DataSubscriberOptionSvgComponent from "~~/components/DataSubscriberOptionSvgComponent";
-import EndUserOptionSvgComponent from "~~/components/EndUserOptionSvgComponent";
 import FollowDalnFooter from "~~/components/FollowDalnFooter";
+import DataSubscriberOptionSvgComponent from "~~/components/svgComponents/DataSubscriberOptionSvgComponent";
+import EndUserOptionSvgComponent from "~~/components/svgComponents/EndUserOptionSvgComponent";
 interface StyledLinkBoxProps extends React.ComponentProps<typeof LinkBox> {
   children: React.ReactNode;
   href: string;

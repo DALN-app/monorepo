@@ -13,9 +13,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 
-import DataBaseSvgComponent from "~~/components/DataBaseSvgComponent";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
-import SuccessSvgComponent from "~~/components/SuccessSvgComponent";
+import DataBaseSvgComponent from "~~/components/svgComponents/DataBaseSvgComponent";
+import SuccessSvgComponent from "~~/components/svgComponents/SuccessSvgComponent";
 import UploadUserDataProgressBar from "~~/components/UploadUserDataProgressBar";
 import {
   basicSpnFactoryABI,
