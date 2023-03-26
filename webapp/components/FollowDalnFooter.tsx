@@ -38,7 +38,7 @@ const TwitterIcon = () => (
 
 export default function FollowDalnFooter() {
   return (
-    <Center paddingY={5}>
+    <Center marginBottom={10}>
       <VStack>
         <Text
           fontWeight="bold"
