@@ -11,15 +11,16 @@ import { useEffect, useState } from "react";
 import { useAccount, useContractRead } from "wagmi";
 
 import PageTransition from "~~/components/PageTransition";
-import { basicFevmDalnABI } from "~~/generated/wagmiTypes";
+import {
+  basicFevmDalnABI,
+  useBasicFevmDalnBalanceOf,
+} from "~~/generated/wagmiTypes";
 
 export default function UserHome() {
   const { address } = useAccount();
 
-  const balanceQuery = useContractRead({
+  const balanceQuery = useBasicFevmDalnBalanceOf({
     address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    abi: basicFevmDalnABI,
-    functionName: "balanceOf",
     args: [address || "0x0"],
     enabled: !!address,
   });
@@ -27,7 +28,7 @@ export default function UserHome() {
   const router = useRouter();
 
   useEffect(() => {
-    if (address && !balanceQuery.isLoading) {
+    if (address && balanceQuery.isSuccess) {
       if (balanceQuery.data && balanceQuery.data.gt(0)) {
         void router.replace("/user/dashboard");
       }
@@ -36,7 +37,7 @@ export default function UserHome() {
         void router.replace("/user/onboarding/no-token");
       }
     }
-  }, [address, balanceQuery.data, balanceQuery.isLoading, router]);
+  }, [address, balanceQuery.data, balanceQuery.isSuccess, router]);
 
   if (!address && router.isReady) {
     void router.replace("/user/onboarding/not-connected");

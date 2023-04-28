@@ -8,7 +8,7 @@ const func: DeployFunction = async (
   const { getNamedAccounts, deployments } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const BasicFEVMDALN = await deploy("Basic_FEVM_DALN", {
+  await deploy("Basic_FEVM_DALN", {
     from: deployer,
     log: true,
     // waitConfirmations: 1,

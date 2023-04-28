@@ -11,6 +11,7 @@ import {
   Progress,
 } from "@chakra-ui/react";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
+import { BigNumber } from "ethers";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import NextLink from "next/link";
@@ -23,6 +24,12 @@ import OnBoardingContentPiece from "~~/components/OnBoardingContentPiece";
 import OnBoardingHeaderComponent from "~~/components/OnBoardingHeaderComponent";
 import PageTransition from "~~/components/PageTransition";
 import WalletConnectionCheck from "~~/components/WalletConnectionCheck";
+import {
+  useBasicFevmDalnGetRoleAdmin,
+  useBasicFevmDalnGetTokenInfos,
+  useBasicFevmDalnIsAdmin,
+  useBasicFevmDalnTokenOfOwnerByIndex,
+} from "~~/generated/wagmiTypes";
 import { SpendAdmin } from "~~/oldContracts";
 
 const OnboardingNotConnected = () => {
@@ -32,12 +39,9 @@ const OnboardingNotConnected = () => {
 
   const [shouldLoad, setShouldLoad] = useState(true);
 
-  const adminTokenBalanceQuery = useContractRead({
-    // TODO: Replace with new contract address
-    address: SpendAdmin.polygonMumbai as `0x${string}`,
-    abi: erc721ABI,
-    functionName: "balanceOf",
+  const isAdminQuery = useBasicFevmDalnIsAdmin({
     args: [address || "0x0"],
+    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
     enabled: !!address,
     onSettled: () => {
       setShouldLoad(false);
@@ -49,17 +53,12 @@ const OnboardingNotConnected = () => {
       setShouldLoad(false);
     }
 
-    if (address && !adminTokenBalanceQuery.isLoading) {
-      if (adminTokenBalanceQuery.data && adminTokenBalanceQuery.data?.gt(0)) {
+    if (address && !isAdminQuery.isLoading) {
+      if (isAdminQuery.data) {
         void router.replace("/admin/dashboard");
       }
     }
-  }, [
-    address,
-    adminTokenBalanceQuery.data,
-    adminTokenBalanceQuery.isLoading,
-    router,
-  ]);
+  }, [address, isAdminQuery.data, isAdminQuery.isLoading, router]);
 
   return (
     <>
@@ -102,41 +101,38 @@ const OnboardingNotConnected = () => {
 
             <Center pos="relative">
               <AnimatePresence>
-                {address &&
-                  !adminTokenBalanceQuery.isLoading &&
-                  (!adminTokenBalanceQuery.data ||
-                    adminTokenBalanceQuery.data?.lt(1)) && (
-                    <Alert
-                      justifyContent="center"
-                      borderRadius={12}
-                      status="warning"
-                      alignItems="center"
-                      colorScheme="orange"
-                      variant="subtle"
-                      w={400}
-                      px={6}
-                      pos="absolute"
-                      top={-16}
-                      as={motion.div}
-                      key="admin-nft-not-detected"
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                    >
-                      <AlertIcon />
-                      <AlertTitle color="orange.500">Admin NFT</AlertTitle>
-                      <AlertDescription color="orange.500">
-                        not detected.{" "}
-                        <Button
-                          variant="link"
-                          onClick={openAccountModal}
-                          color="orange.500"
-                        >
-                          Change wallet?
-                        </Button>
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                {address && !isAdminQuery.isLoading && !isAdminQuery.data && (
+                  <Alert
+                    justifyContent="center"
+                    borderRadius={12}
+                    status="warning"
+                    alignItems="center"
+                    colorScheme="orange"
+                    variant="subtle"
+                    w={400}
+                    px={6}
+                    pos="absolute"
+                    top={-16}
+                    as={motion.div}
+                    key="admin-nft-not-detected"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <AlertIcon />
+                    <AlertTitle color="orange.500">Admin role</AlertTitle>
+                    <AlertDescription color="orange.500">
+                      not detected.{" "}
+                      <Button
+                        variant="link"
+                        onClick={openAccountModal}
+                        color="orange.500"
+                      >
+                        Change wallet?
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <Box as={motion.div} layout>
                   <WalletConnectionCheck
@@ -147,8 +143,8 @@ const OnboardingNotConnected = () => {
                   >
                     <NextLink passHref href="/admin/dashboard">
                       <Button
-                        isLoading={adminTokenBalanceQuery.isLoading}
-                        isDisabled={!adminTokenBalanceQuery.data?.gte(1)}
+                        isLoading={isAdminQuery.isLoading}
+                        isDisabled={!isAdminQuery.data}
                         size="lg"
                       >
                         Enter admin dashboard

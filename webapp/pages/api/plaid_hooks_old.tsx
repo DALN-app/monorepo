@@ -1,10 +1,11 @@
 import { Readable } from "stream";
 
 import { S3 } from "@aws-sdk/client-s3";
-import pinataSDK from "@pinata/sdk";
+import lighthouse from "@lighthouse-web3/sdk";
 import { MongoClient } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
+import { Volume } from "memfs";
 
 const aws_client = new S3({
   region: "us-east-1",
@@ -72,45 +73,68 @@ export default async function handler(req: PlaidHook, res: NextApiResponse) {
       access_token: access_token,
     });
 
-    aws_client.putObject(
-      {
-        Bucket: "spndao",
-        Key: `${transactionsSyncRes.data.request_id}.json`,
-        Body: JSON.stringify(transactionsSyncRes.data.added),
-      },
-      async (err, data) => {
-        if (err) {
-          return res.status(500).json({ error: err });
-        }
+    const memfs = Volume.fromJSON({});
 
-        const s3obj = await aws_client.getObject({
-          Bucket: "spndao",
-          Key: `${transactionsSyncRes.data.request_id}.json`,
-        });
-
-        const buffer = s3obj.Body as Readable;
-
-        const pinata = new pinataSDK(
-          process.env.PINATA_API_KEY,
-          process.env.PINATA_API_SECRET
-        );
-
-        const options = {
-          pinataMetadata: {
-            name: req.body.item_id,
-          },
-        };
-
-        try {
-          const pinataRes = await pinata.pinFileToIPFS(buffer, options);
-          console.log(`pinataRes: ${pinataRes}`);
-          return res.status(200);
-        } catch (err) {
-          console.log(`pinata.pinFileToIPFS() failed: ${err}`);
-          return res.status(500).json({ error: err });
-        }
-      }
+    // Write the JSON string to an in-memory file
+    const jsonFilePath = `/${transactionsSyncRes.data.request_id}.json`;
+    memfs.writeFileSync(
+      jsonFilePath,
+      JSON.stringify(transactionsSyncRes.data.added)
     );
+
+    try {
+      const response = await lighthouse.uploadEncrypted(
+        jsonFilePath,
+        process.env.LIGHTHOUSE_API_KEY as string,
+        publicKey,
+        signed_message
+      );
+      console.log(`lighthouse.uploadEncrypted() response: ${response}`);
+      return res.status(200);
+    } catch {
+      console.log(`lighthouse.uploadEncrypted() failed: ${err}`);
+      return res.status(500).json({ error: err });
+    }
+
+    // aws_client.putObject(
+    //   {
+    //     Bucket: "spndao",
+    //     Key: `${transactionsSyncRes.data.request_id}.json`,
+    //     Body: JSON.stringify(transactionsSyncRes.data.added),
+    //   },
+    //   async (err, data) => {
+    //     if (err) {
+    //       return res.status(500).json({ error: err });
+    //     }
+
+    //     const s3obj = await aws_client.getObject({
+    //       Bucket: "spndao",
+    //       Key: `${transactionsSyncRes.data.request_id}.json`,
+    //     });
+
+    //     const buffer = s3obj.Body as Blob;
+
+    //     const pinata = new pinataSDK(
+    //       process.env.PINATA_API_KEY,
+    //       process.env.PINATA_API_SECRET
+    //     );
+
+    //     const options = {
+    //       pinataMetadata: {
+    //         name: req.body.item_id,
+    //       },
+    //     };
+
+    //     try {
+    //       const pinataRes = await pinata.pinFileToIPFS(buffer, options);
+    //       console.log(`pinataRes: ${pinataRes}`);
+    //       return res.status(200);
+    //     } catch (err) {
+    //       console.log(`pinata.pinFileToIPFS() failed: ${err}`);
+    //       return res.status(500).json({ error: err });
+    //     }
+    //   }
+    // );
 
     return res.status(200);
   } else {

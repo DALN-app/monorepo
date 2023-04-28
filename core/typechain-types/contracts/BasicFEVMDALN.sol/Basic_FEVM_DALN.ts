@@ -9,6 +9,7 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -32,28 +33,41 @@ export declare namespace Basic_FEVM_DALN {
     id: PromiseOrValue<BigNumberish>;
     cid: PromiseOrValue<string>;
     owner: PromiseOrValue<string>;
+    isDecrypted: PromiseOrValue<boolean>;
+    price: PromiseOrValue<BigNumberish>;
   };
 
-  export type TokenInfoStructOutput = [BigNumber, string, string] & {
+  export type TokenInfoStructOutput = [
+    BigNumber,
+    string,
+    string,
+    boolean,
+    BigNumber
+  ] & {
     id: BigNumber;
     cid: string;
     owner: string;
+    isDecrypted: boolean;
+    price: BigNumber;
   };
 }
 
 export interface Basic_FEVM_DALNInterface extends utils.Interface {
   functions: {
-    "ADMIN_ROLE()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "USER_ROLE()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
+    "decrypt(uint256[])": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
+    "getIsTokenDecrypted(uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getTokenInfo(uint256)": FunctionFragment;
     "getTokenInfos(uint256,uint256)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
+    "isAdmin(address)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
@@ -74,17 +88,20 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "ADMIN_ROLE"
       | "DEFAULT_ADMIN_ROLE"
+      | "USER_ROLE"
       | "approve"
       | "balanceOf"
       | "burn"
+      | "decrypt"
       | "getApproved"
+      | "getIsTokenDecrypted"
       | "getRoleAdmin"
       | "getTokenInfo"
       | "getTokenInfos"
       | "grantRole"
       | "hasRole"
+      | "isAdmin"
       | "isApprovedForAll"
       | "name"
       | "ownerOf"
@@ -104,13 +121,10 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "ADMIN_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "USER_ROLE", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
@@ -124,7 +138,15 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "decrypt",
+    values: [PromiseOrValue<BigNumberish>[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getApproved",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getIsTokenDecrypted",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -146,6 +168,10 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "hasRole",
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isAdmin",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -219,16 +245,21 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
     ]
   ): string;
 
-  decodeFunctionResult(functionFragment: "ADMIN_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "USER_ROLE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "decrypt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getIsTokenDecrypted",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -245,6 +276,7 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isAdmin", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
@@ -409,9 +441,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
-
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    USER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -429,10 +461,20 @@ export interface Basic_FEVM_DALN extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    decrypt(
+      tokenIds: PromiseOrValue<BigNumberish>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    getIsTokenDecrypted(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     getRoleAdmin(
       role: PromiseOrValue<BytesLike>,
@@ -463,6 +505,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
 
     hasRole(
       role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    isAdmin(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -551,9 +598,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  USER_ROLE(overrides?: CallOverrides): Promise<string>;
 
   approve(
     to: PromiseOrValue<string>,
@@ -571,10 +618,20 @@ export interface Basic_FEVM_DALN extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  decrypt(
+    tokenIds: PromiseOrValue<BigNumberish>[],
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   getApproved(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  getIsTokenDecrypted(
+    tokenId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   getRoleAdmin(
     role: PromiseOrValue<BytesLike>,
@@ -605,6 +662,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
 
   hasRole(
     role: PromiseOrValue<BytesLike>,
+    account: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isAdmin(
     account: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -693,9 +755,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
-
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    USER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -713,10 +775,20 @@ export interface Basic_FEVM_DALN extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    decrypt(
+      tokenIds: PromiseOrValue<BigNumberish>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    getIsTokenDecrypted(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     getRoleAdmin(
       role: PromiseOrValue<BytesLike>,
@@ -747,6 +819,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
 
     hasRole(
       role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isAdmin(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -904,9 +981,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   };
 
   estimateGas: {
-    ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    USER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -924,7 +1001,17 @@ export interface Basic_FEVM_DALN extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    decrypt(
+      tokenIds: PromiseOrValue<BigNumberish>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     getApproved(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getIsTokenDecrypted(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -953,6 +1040,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
 
     hasRole(
       role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isAdmin(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1042,11 +1134,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
   };
 
   populateTransaction: {
-    ADMIN_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     DEFAULT_ADMIN_ROLE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    USER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -1064,7 +1156,17 @@ export interface Basic_FEVM_DALN extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    decrypt(
+      tokenIds: PromiseOrValue<BigNumberish>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     getApproved(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getIsTokenDecrypted(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1093,6 +1195,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
 
     hasRole(
       role: PromiseOrValue<BytesLike>,
+      account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isAdmin(
       account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

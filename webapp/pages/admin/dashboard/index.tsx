@@ -13,19 +13,26 @@ import {
   Text,
   Wrap,
 } from "@chakra-ui/react";
+import { BigNumber } from "ethers";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useAccount, useContractRead } from "wagmi";
 
 import { AdminDataTable } from "~~/components/AdminDashboard";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import NavBar from "~~/components/NavBar";
 import PageTransition from "~~/components/PageTransition";
 import BackChevronSvgComponent from "~~/components/svgComponents/BackChevronSvgComponent";
+import {
+  basicFevmDalnABI,
+  useBasicFevmDalnGetTokenInfos,
+} from "~~/generated/wagmiTypes";
 import { NextPageWithLayout } from "~~/pages/_app";
 
 const AdminDashboard: NextPageWithLayout = () => {
   const router = useRouter();
+  const { address } = useAccount();
 
   const [successPayment, setSuccessPayment] = useState<{
     totalPaid: number;

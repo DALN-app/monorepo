@@ -5,7 +5,7 @@ import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 async function setToken(userId: string, token: string, itemId: string) {
   const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
   const dbClient = new MongoClient(url);
-  const dbName = "spndao";
+  const dbName = "daln";
   await dbClient.connect();
 
   const db = dbClient.db(dbName);
@@ -15,6 +15,7 @@ async function setToken(userId: string, token: string, itemId: string) {
     name: userId,
     plaid_access_token: token,
     plaid_item_id: itemId,
+    plaid_history_synced: false,
   });
 }
 

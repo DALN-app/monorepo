@@ -9,12 +9,14 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
   using Counters for Counters.Counter;
 
-  bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+  bytes32 public constant USER_ROLE = keccak256("USER");
 
   struct TokenInfo {
     uint256 id;
     string cid;
     address owner;
+    bool isDecrypted;
+    uint256 price;
   }
 
   Counters.Counter private _tokenIdTracker;
@@ -23,34 +25,67 @@ contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
   mapping(uint256 => TokenInfo) private _tokenInfos;
 
   constructor() ERC721("Basic_FEVM_DALN", "DALN") {
-    _setupRole(ADMIN_ROLE, _msgSender());
+    _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    _setRoleAdmin(USER_ROLE, DEFAULT_ADMIN_ROLE);
   }
 
   function safeMint(string memory cid) public {
     require(balanceOf(_msgSender()) == 0, "Only 1 SBT per address allowed");
 
     uint256 tokenId = _tokenIdTracker.current();
-    _safeMint(_msgSender(), tokenId);
-    _tokenInfos[tokenId] = TokenInfo(tokenId, cid, _msgSender());
+    _tokenInfos[tokenId] = TokenInfo(tokenId, cid, _msgSender(), false, 0.72 ether);
     _tokenIdTracker.increment();
     _activeTokensCount.increment();
+    _safeMint(_msgSender(), tokenId);
+  }
+
+  function _decryptSingle(uint256 tokenId) private {
+    require(isAdmin(_msgSender()), "Caller is not an admin");
+    require(_exists(tokenId), "Token does not exist");
+    require(!_tokenInfos[tokenId].isDecrypted, "Token is already decrypted");
+
+    _tokenInfos[tokenId].isDecrypted = true;
+  }
+
+  function _decryptMultiple(uint256[] memory tokenIds) private {
+    require(isAdmin(_msgSender()), "Caller is not an admin");
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      _decryptSingle(tokenIds[i]);
+    }
+  }
+
+  function decrypt(uint256[] memory tokenIds) public payable {
+    uint256 totalPrice = 0;
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      uint256 tokenId = tokenIds[i];
+      require(_exists(tokenId), "Token does not exist");
+      require(!_tokenInfos[tokenId].isDecrypted, "Token is already decrypted");
+      totalPrice += _tokenInfos[tokenId].price;
+    }
+
+    require(msg.value >= totalPrice, "Insufficient funds");
+
+    _decryptMultiple(tokenIds);
   }
 
   function getTokenInfo(uint256 tokenId) public view returns (TokenInfo memory) {
     require(_exists(tokenId), "Token does not exist");
-    require(
-      hasRole(ADMIN_ROLE, _msgSender()) || _msgSender() == _tokenInfos[tokenId].owner,
-      "Caller is not an admin or the token owner"
-    );
     return _tokenInfos[tokenId];
+  }
+
+  function getIsTokenDecrypted(uint256 tokenId) public view returns (bool) {
+    if (!_exists(tokenId)) {
+      return false;
+    }
+
+    return _tokenInfos[tokenId].isDecrypted;
   }
 
   function getTokenInfos(
     uint256 _cursor,
     uint256 _pageSize
   ) public view returns (TokenInfo[] memory, uint256 _nextCursor, bool _hasMore) {
-    require(hasRole(ADMIN_ROLE, _msgSender()), "Caller is not an admin");
-
     uint256 totalTokens = _tokenIdTracker.current();
     uint256 activeTokensCount = _activeTokensCount.current();
 
@@ -114,11 +149,14 @@ contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
 
   function burn(uint256 tokenId) public virtual {
     require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
-    _burn(tokenId);
-
-    delete _tokenInfos[tokenId];
 
     _activeTokensCount.decrement();
+    delete _tokenInfos[tokenId];
+    _burn(tokenId);
+  }
+
+  function isAdmin(address account) public view returns (bool) {
+    return hasRole(DEFAULT_ADMIN_ROLE, account);
   }
 
   function supportsInterface(

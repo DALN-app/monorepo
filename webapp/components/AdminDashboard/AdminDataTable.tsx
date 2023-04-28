@@ -35,135 +35,27 @@ import {
   CellContext as TanCellContext,
   RowData,
 } from "@tanstack/react-table";
+import { BigNumber } from "ethers";
+import { formatUnits } from "ethers/lib/utils.js";
 import React, { useEffect, useMemo, useState } from "react";
 
 import IndeterminateCheckbox from "../atoms/IndeterminateCheckbox";
 import DecryptButton from "../molecules/admin/dashboard/DecryptButton";
 import EncryptedStatus from "../molecules/admin/dashboard/EncryptedStatus";
 
-type Item = {
-  encryptedCid: string;
-  isDecrypted: boolean;
-  walletAddress: string;
-  tokenId?: number;
-  sessionPayment: number;
-};
+import {
+  basicFevmDalnABI,
+  useBasicFevmDalnGetTokenInfos,
+} from "~~/generated/wagmiTypes";
+import usePrepareWriteAndWaitTx from "~~/hooks/usePrepareWriteAndWaitTx";
 
-// This is demo data, will be replaced with real data
-const defaultData: Item[] = [
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 2,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 3,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 4,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 5,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 6,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 7,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 8,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 9,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 10,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 11,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 12,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 13,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "BuoW4MxSRnx14AtUMANfaqe9uJBGIeKoUt7mO9IAibMyOqrk78HVNG7PE3zZ_ZpNdGscs_kY_xvU9Fa0QjuFHA==",
-    isDecrypted: true,
-    walletAddress: "0xB0Ee2f94f0680d6131316d6056Dcf5827Abe492B",
-    tokenId: 14,
-    sessionPayment: 0.01,
-  },
-  {
-    encryptedCid:
-      "82cf7QgtXp7XVpeBdWenUxRAJDDTYnmGIDr7oxwEE2v8MlqjumztIcyYVEUGTQz3Igcy6iOq7qnyvmU1z_kMoQ==",
-    isDecrypted: false,
-    walletAddress: "0x72fC6D5f8759f812b8Ae1155A9A8ED4780678EeC",
-    tokenId: 15,
-    sessionPayment: 0.01,
-  },
-];
+type Item = {
+  id: BigNumber;
+  cid: string;
+  isDecrypted: boolean;
+  owner: string;
+  price: BigNumber;
+};
 
 const columnHelper = createColumnHelper<Item>();
 
@@ -200,8 +92,16 @@ const columns = [
       </div>
     ),
   },
+  columnHelper.accessor("id", {
+    header: () => "Token Id",
+    cell: (item) => (
+      <Flex>
+        <Text>{item.getValue().toString()}</Text>
+      </Flex>
+    ),
+  }),
 
-  columnHelper.accessor("walletAddress", {
+  columnHelper.accessor("owner", {
     header: () => "Holder Wallet Address",
     cell: (item) => (
       <Flex>
@@ -209,19 +109,30 @@ const columns = [
       </Flex>
     ),
   }),
-  columnHelper.accessor("sessionPayment", {
+  columnHelper.accessor("cid", {
+    header: () => "CID",
+    cell: (item) => (
+      <Flex>
+        <Text>{item.getValue()}</Text>
+      </Flex>
+    ),
+  }),
+  columnHelper.accessor("price", {
     header: () => "Session Payment",
-    cell: (item) => <Text>{item.getValue()} Matic</Text>,
+    cell: (item) => <Text>{formatUnits(item.getValue(), "ether")} FIL</Text>,
   }),
   columnHelper.accessor("isDecrypted", {
     header: () => "Status",
     cell: (item: unknown) => {
       const itemCasted = item as CellContext<Row<Item>, boolean>;
       const isDecrypted = itemCasted.getValue();
-      return isDecrypted && itemCasted.hover ? (
+      return !isDecrypted && itemCasted.hover ? (
         <DecryptButton onClick={itemCasted.setPressedDecryptRow} />
       ) : (
-        <EncryptedStatus isDecrypted={itemCasted.getValue()} />
+        <EncryptedStatus
+          isDecrypted={itemCasted.getValue()}
+          cid={itemCasted.row.getValue("cid")}
+        />
       );
     },
   }),
@@ -243,7 +154,37 @@ export default function AdminDataTable({
     decryptedDataAmount: number;
   }) => void;
 }) {
-  const [data, setData] = React.useState(() => [...defaultData]);
+  const getTokenInfos = useBasicFevmDalnGetTokenInfos({
+    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
+    args: [BigNumber.from(0), BigNumber.from(10)],
+    watch: true,
+  });
+
+  const tokenInfos = useMemo(() => {
+    if (!getTokenInfos.data?.[0] || !getTokenInfos.isSuccess) return [];
+    return getTokenInfos.data[0].map(
+      ({ cid, isDecrypted, owner, id, price }) => ({
+        id,
+        cid,
+        isDecrypted,
+        owner,
+        price,
+      })
+    );
+  }, [getTokenInfos.data, getTokenInfos.isSuccess]);
+
+  console.log("tokenInfos", getTokenInfos);
+
+  const decryptMutation = usePrepareWriteAndWaitTx({
+    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
+    abi: basicFevmDalnABI,
+    functionName: "decrypt",
+    args: [[tokenInfos?.[0] ? tokenInfos?.[0].id : undefined]],
+    overrides: {
+      value: tokenInfos?.[0] ? tokenInfos[0].price : undefined,
+    },
+  });
+
   const [isMouseOverRowId, setIsMouseOverRowId] = useState("");
 
   const [pressedDecryptRow, setPressedDecryptRow] = useState<Row<Item> | null>(
@@ -277,7 +218,7 @@ export default function AdminDataTable({
   };
 
   const table = useReactTable({
-    data,
+    data: tokenInfos,
     columns,
     state: {
       rowSelection,
@@ -449,7 +390,8 @@ export default function AdminDataTable({
                     size={"lg"}
                     width={"150px"}
                     onClick={() => {
-                      setIsWaitingForApproval(true);
+                      // setIsWaitingForApproval(true);
+                      decryptMutation.write?.();
                     }}
                   >
                     Confirm

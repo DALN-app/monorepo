@@ -23,13 +23,7 @@ const ConnectedLayout = ({ children }: ConnectedLayoutProps) => {
   }, [isConnecting, isConnected, router]);
 
   if (isConnected) {
-    return (
-      <Flex minH="100vh" direction="column">
-        <NavBar />
-        {children}
-        <FollowDalnFooter />
-      </Flex>
-    );
+    return <>{children}</>;
   }
 
   return <DelayedProgressBar />;

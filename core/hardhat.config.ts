@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
       chainId: 80001,
     },
     fevmTestnet: {
-      url: "https://rpc.ankr.com/filecoin_testnet",
+      url: "https://filecoin-hyperspace.chainstacklabs.com/rpc/v1",
       accounts: [process.env.FEVM_TESTNET_PRIVATE_KEY],
       name: "fevmTestnet",
       chainId: 3141,

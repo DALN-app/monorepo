@@ -11,7 +11,7 @@ import type { NextPage } from "next";
 import type { AppProps } from "next/app";
 import { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
+import { WagmiConfig, configureChains, createClient } from "wagmi";
 import { filecoinHyperspace } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
@@ -25,15 +25,11 @@ export type NextPageWithLayout<P = object, IP = P> = NextPage<P, IP> & {
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
+
 const queryClient = new QueryClient();
 
 const { chains, provider, webSocketProvider } = configureChains(
-  [
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
-      ? [filecoinHyperspace]
-      : []),
-    filecoinHyperspace,
-  ],
+  [filecoinHyperspace],
   [
     alchemyProvider({
       apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
@@ -43,7 +39,8 @@ const { chains, provider, webSocketProvider } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: "DALN",
+  appName: "DALN Fevm Testnet",
+  projectId: "905f52d1482f91dab820a9be21b2ce58",
   chains,
 });
 
