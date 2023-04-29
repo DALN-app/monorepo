@@ -272,6 +272,8 @@ export default function AdminDataTable() {
     >[];
     if (newTokensToDecrypt.length > 0) {
       setTokensToDecrypt(newTokensToDecrypt);
+
+      table.resetRowSelection();
     }
   };
 
