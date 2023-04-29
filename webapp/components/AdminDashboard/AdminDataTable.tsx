@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   Flex,
   Modal,
   ModalBody,
@@ -39,7 +40,6 @@ import { BigNumber } from "ethers";
 import { formatUnits } from "ethers/lib/utils.js";
 import React, { useEffect, useMemo, useState } from "react";
 
-import IndeterminateCheckbox from "../atoms/IndeterminateCheckbox";
 import DecryptButton from "../molecules/admin/dashboard/DecryptButton";
 import EncryptedStatus from "../molecules/admin/dashboard/EncryptedStatus";
 
@@ -71,21 +71,20 @@ const columns = [
   {
     id: "select",
     header: ({ table }: { table: TableType<Item> }) => (
-      <IndeterminateCheckbox
+      <Checkbox
         {...{
-          checked: table.getIsAllRowsSelected(),
-          indeterminate: table.getIsSomeRowsSelected(),
+          isChecked: table.getIsAllRowsSelected(),
+          isIndeterminate: table.getIsSomeRowsSelected(),
           onChange: table.getToggleAllRowsSelectedHandler(),
         }}
       />
     ),
     cell: ({ row }: { row: Row<Item> }) => (
       <div className="px-1">
-        <IndeterminateCheckbox
+        <Checkbox
           {...{
-            checked: row.getIsSelected(),
-            disabled: !row.getCanSelect(),
-            indeterminate: row.getIsSomeSelected(),
+            isChecked: row.getIsSelected(),
+            isDisabled: !row.getCanSelect(),
             onChange: row.getToggleSelectedHandler(),
           }}
         />

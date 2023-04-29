@@ -1,12 +1,8 @@
-import * as fs from "fs/promises";
-import * as path from "path";
-
 import lighthouse from "@lighthouse-web3/sdk";
-import { NextApiRequest, NextApiResponse } from "next";
-import { v4 as uuidv4 } from "uuid";
 import { BigNumberish } from "ethers";
+import { NextApiRequest, NextApiResponse } from "next";
 
-interface UploadEncrypted extends NextApiRequest {
+interface ApplyAccessConditionRequest extends NextApiRequest {
   body: {
     cid: string;
     tokenId: BigNumberish;
@@ -16,7 +12,7 @@ interface UploadEncrypted extends NextApiRequest {
 }
 
 export default async function handler(
-  req: UploadEncrypted,
+  req: ApplyAccessConditionRequest,
   res: NextApiResponse
 ) {
   try {
@@ -53,15 +49,6 @@ export default async function handler(
 
     const aggregator = "([1] and [2])";
 
-    /*
-        accessCondition(publicKey, cid, signedMessage, conditions, aggregator)
-          Parameters:
-            publicKey: owners public key
-            CID: CID of the file to decrypt
-            signedMessage: message signed by the owner of publicKey
-            conditions: should be in a format like above
-            aggregator: aggregator to apply conditions
-      */
     const response = await lighthouse.applyAccessCondition(
       req.body.publicKey,
       req.body.cid,
@@ -70,11 +57,8 @@ export default async function handler(
       aggregator
     );
 
-    console.log("response accCond:", response);
-
     return res.status(200).send(response);
   } catch (error) {
-    console.log('error', error);
     return res.status(500).send(error);
   }
 }

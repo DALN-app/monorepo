@@ -2,6 +2,12 @@ import { MongoClient } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
+interface PlaidTransactionSyncRequest extends NextApiRequest {
+  body: {
+    itemId: string;
+  };
+}
+
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
   baseOptions: {
@@ -17,19 +23,17 @@ async function getAccessToken(item_id: string) {
   const dbClient = new MongoClient(url);
   const dbName = "daln";
 
-  // await dbClient.connect();
-
   const db = dbClient.db(dbName);
   const collection = db.collection("users");
 
   const item = await collection.findOne({ plaid_item_id: item_id });
 
-  console.log("item", item);
-
   return item?.plaid_access_token as string;
 }
+
+// Fetches and returns all transactions from plaid
 export default async function handler(
-  req: NextApiRequest,
+  req: PlaidTransactionSyncRequest,
   res: NextApiResponse
 ) {
   const itemId = req.body.itemId;
@@ -37,11 +41,7 @@ export default async function handler(
     return res.status(400).send("Missing item ID");
   }
 
-  console.log("itemId", itemId);
-
-  const access_token = await getAccessToken(itemId as string);
-
-  console.log("access_token", access_token);
+  const access_token = await getAccessToken(itemId);
 
   const client = new PlaidApi(configuration);
 
@@ -55,14 +55,11 @@ export default async function handler(
       ...(cursor ? { cursor } : {}),
     });
 
-    console.log("transactionsSyncRes", transactionsSyncRes.data);
     transactions.push(...transactionsSyncRes.data.added);
 
     hasMore = transactionsSyncRes.data.has_more;
     cursor = transactionsSyncRes.data.next_cursor;
   }
-
-  console.log("transactions", transactions);
 
   try {
     return res.status(200).send({ ...transactions });

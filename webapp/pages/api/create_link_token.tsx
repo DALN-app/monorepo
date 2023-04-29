@@ -73,6 +73,6 @@ export default async function handler(
     })
     .catch((error) => {
       console.log(`create link token failed: ${error}`);
-      res.status(500).json({ error });
+      res.status(500).send(error);
     });
 }

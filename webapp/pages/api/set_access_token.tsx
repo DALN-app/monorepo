@@ -19,6 +19,7 @@ async function setToken(userId: string, token: string, itemId: string) {
   });
 }
 
+// Initiates plaid transaction sync. Receiving plaid access token and item id, storing it in our db. We set plaid_history_synced to false, on the frontend we will check if it's true. When it's true, we will know that plaid has the transaction history ready to fetch.
 interface SetTokenProps extends NextApiRequest {
   body: {
     public_token: string;
@@ -55,7 +56,7 @@ export default async function handler(
         response.data.item_id
       ).catch((error) => {
         console.log(`setToken() failed: ${error}`);
-        res.status(500).json({ error: error });
+        res.status(500).send(error);
       });
 
       // init the tx sync
@@ -65,13 +66,13 @@ export default async function handler(
         })
         .catch((error) => {
           console.log(`transactionsSync() failed: ${error}`);
-          res.status(500).json({ error: error });
+          res.status(500).send(error);
         });
     })
     .catch((error) => {
       console.log(`exchange public token failed: ${error}`);
       console.log(`public_token: ${req.body.public_token}`);
-      res.status(500).json({ error: error });
+      res.status(500).send(error);
     })
     .finally(() => {
       res.status(200).json({ success: true, plaidItemId });

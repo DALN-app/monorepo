@@ -20,7 +20,6 @@ import { NextPageWithLayout } from "../_app";
 import { DashboardStat, BurnSBT } from "~~/components/Dashboard";
 import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import HasSBT from "~~/components/layouts/HasSBT";
-import PageTransition from "~~/components/PageTransition";
 import { useBasicFevmDalnTokenOfOwnerByIndex } from "~~/generated/wagmiTypes";
 
 const Dashboard: NextPageWithLayout = () => {
