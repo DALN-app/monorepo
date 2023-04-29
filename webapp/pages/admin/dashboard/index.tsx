@@ -32,22 +32,7 @@ import { NextPageWithLayout } from "~~/pages/_app";
 
 const AdminDashboard: NextPageWithLayout = () => {
   const router = useRouter();
-  const { address } = useAccount();
 
-  const [successPayment, setSuccessPayment] = useState<{
-    totalPaid: number;
-    decryptedDataAmount: number;
-  } | null>({ totalPaid: 12, decryptedDataAmount: 1 });
-
-  const onPaymentSuccess = ({
-    totalPaid,
-    decryptedDataAmount,
-  }: {
-    totalPaid: number;
-    decryptedDataAmount: number;
-  }) => {
-    setSuccessPayment({ totalPaid, decryptedDataAmount });
-  };
   return (
     <>
       <Head>
@@ -82,34 +67,10 @@ const AdminDashboard: NextPageWithLayout = () => {
               >
                 Manage DALN Data
               </Heading>
-              {successPayment ? (
-                <Flex justifyContent={"center"} mt={4}>
-                  <Alert
-                    w={400}
-                    status="success"
-                    borderRadius={12}
-                    justifyContent={"center"}
-                    borderColor={"#5BA85A"}
-                    borderWidth={1}
-                  >
-                    <Wrap>
-                      <AlertIcon />
-                      <Box>
-                        <AlertTitle color={"#5BA85A"}>
-                          {`Successfully decrypted ${successPayment.decryptedDataAmount} data set`}
-                        </AlertTitle>
-                        <AlertDescription color={"#5BA85A"}>
-                          {`  Total ${successPayment.totalPaid} Matic paid to token holder`}
-                        </AlertDescription>
-                      </Box>
-                    </Wrap>
-                  </Alert>
-                </Flex>
-              ) : null}
             </CardHeader>
 
             <CardBody>
-              <AdminDataTable onPaymentSuccess={onPaymentSuccess} />
+              <AdminDataTable />
             </CardBody>
           </Card>
         </Container>

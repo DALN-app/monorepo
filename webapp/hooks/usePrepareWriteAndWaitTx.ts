@@ -1,3 +1,4 @@
+import { useToast } from "@chakra-ui/react";
 import {
   useWaitForTransaction,
   usePrepareContractWrite,
@@ -12,6 +13,8 @@ export default function usePrepareWriteAndWaitTx(
     onTxConfirmed?: () => void;
   }
 ) {
+  const toast = useToast();
+
   const isValid =
     prepareOptions &&
     prepareOptions.abi &&
@@ -25,12 +28,52 @@ export default function usePrepareWriteAndWaitTx(
     string,
     number
   >(isValid ? prepareOptions : undefined);
-  const writeMutation = useContractWrite(
-    prepareMutation.config as UseContractWriteConfig
-  );
+
+  const writeMutation = useContractWrite({
+    ...(prepareMutation.config as UseContractWriteConfig),
+    onMutate: () => {
+      toast({
+        title: "Please approve the transaction in your wallet",
+        status: "info",
+        duration: 3000,
+        position: "top",
+        isClosable: true,
+      });
+    },
+    onSuccess: (tx) => {
+      toast({
+        id: tx.hash,
+        title: `PENDING ${tx.hash}`,
+        status: "loading",
+        duration: null,
+        isClosable: false,
+        position: "bottom-right",
+      });
+    },
+    onError: (err) => {
+      toast({
+        title: "Transaction failed",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+    },
+  });
+
   const resultTx = useWaitForTransaction({
     hash: writeMutation.data?.hash,
-    onSuccess: options?.onTxConfirmed,
+    onSuccess: (tx) => {
+      toast.update(tx.transactionHash, {
+        title: `SUCCESS ${tx.transactionHash}`,
+        status: "success",
+        duration: 15000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+      options?.onTxConfirmed?.();
+    },
   });
 
   return {

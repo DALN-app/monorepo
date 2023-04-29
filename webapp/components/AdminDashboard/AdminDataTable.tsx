@@ -3,6 +3,7 @@ import {
   Button,
   Checkbox,
   Flex,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -21,9 +22,11 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
+import { IconExternalLink, IconLockDollar } from "@tabler/icons-react";
 import {
   createColumnHelper,
   FilterFn,
@@ -37,17 +40,23 @@ import {
   RowData,
 } from "@tanstack/react-table";
 import { BigNumber } from "ethers";
-import { formatUnits } from "ethers/lib/utils.js";
+import { formatEther, formatUnits } from "ethers/lib/utils.js";
 import React, { useEffect, useMemo, useState } from "react";
 
-import DecryptButton from "../molecules/admin/dashboard/DecryptButton";
-import EncryptedStatus from "../molecules/admin/dashboard/EncryptedStatus";
+import TextWithClipboard from "../TextWithClipboard";
+
+import DecryptionModal from "./DecryptionModal";
 
 import {
-  basicFevmDalnABI,
+  useBasicFevmDalnGetTokenInfo,
   useBasicFevmDalnGetTokenInfos,
 } from "~~/generated/wagmiTypes";
-import usePrepareWriteAndWaitTx from "~~/hooks/usePrepareWriteAndWaitTx";
+
+declare module "@tanstack/table-core" {
+  interface TableMeta<TData extends RowData> {
+    decryptSingleRow: (id: BigNumber) => void;
+  }
+}
 
 type Item = {
   id: BigNumber;
@@ -59,19 +68,15 @@ type Item = {
 
 const columnHelper = createColumnHelper<Item>();
 
-type CellContext<TData extends RowData, TValue> = TanCellContext<
-  TData,
-  TValue
-> & {
-  hover: boolean;
-  setPressedDecryptRow: () => void;
-};
-
 const columns = [
   {
     id: "select",
     header: ({ table }: { table: TableType<Item> }) => (
       <Checkbox
+        sx={{
+          bg: "white",
+          borderRadius: "md",
+        }}
         {...{
           isChecked: table.getIsAllRowsSelected(),
           isIndeterminate: table.getIsSomeRowsSelected(),
@@ -103,17 +108,13 @@ const columns = [
   columnHelper.accessor("owner", {
     header: () => "Holder Wallet Address",
     cell: (item) => (
-      <Flex>
-        <Text>{item.getValue()}</Text>
-      </Flex>
+      <TextWithClipboard value={item.getValue()} truncateMaxLength={9} />
     ),
   }),
   columnHelper.accessor("cid", {
     header: () => "CID",
     cell: (item) => (
-      <Flex>
-        <Text>{item.getValue()}</Text>
-      </Flex>
+      <TextWithClipboard value={item.getValue()} truncateMaxLength={9} />
     ),
   }),
   columnHelper.accessor("price", {
@@ -122,16 +123,39 @@ const columns = [
   }),
   columnHelper.accessor("isDecrypted", {
     header: () => "Status",
-    cell: (item: unknown) => {
-      const itemCasted = item as CellContext<Row<Item>, boolean>;
-      const isDecrypted = itemCasted.getValue();
-      return !isDecrypted && itemCasted.hover ? (
-        <DecryptButton onClick={itemCasted.setPressedDecryptRow} />
-      ) : (
-        <EncryptedStatus
-          isDecrypted={itemCasted.getValue()}
-          cid={itemCasted.row.getValue("cid")}
-        />
+    cell: (item) => {
+      const isDecrypted = item.getValue();
+
+      if (isDecrypted) {
+        return (
+          <Button
+            as={Link}
+            isExternal
+            href={`https://files.lighthouse.storage/viewFile/${item.row.getValue(
+              "cid"
+            )}`}
+            rightIcon={<IconExternalLink size={16} />}
+            size="sm"
+            variant="link"
+          >
+            Decrypted
+          </Button>
+        );
+      }
+
+      return (
+        <Tooltip label="Click to decrypt">
+          <Button
+            onClick={() =>
+              item.table.options.meta?.decryptSingleRow(item.row.getValue("id"))
+            }
+            rightIcon={<IconLockDollar size={16} />}
+            size="sm"
+            colorScheme="yellow"
+          >
+            Encrypted
+          </Button>
+        </Tooltip>
       );
     },
   }),
@@ -145,14 +169,7 @@ const isDecryptedFilterFn: FilterFn<any> = (row, columnId, value, addMeta) => {
   return true;
 };
 
-export default function AdminDataTable({
-  onPaymentSuccess,
-}: {
-  onPaymentSuccess: (payment: {
-    totalPaid: number;
-    decryptedDataAmount: number;
-  }) => void;
-}) {
+export default function AdminDataTable() {
   const getTokenInfos = useBasicFevmDalnGetTokenInfos({
     address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
     args: [BigNumber.from(0), BigNumber.from(10)],
@@ -172,27 +189,11 @@ export default function AdminDataTable({
     );
   }, [getTokenInfos.data, getTokenInfos.isSuccess]);
 
-  console.log("tokenInfos", getTokenInfos);
-
-  const decryptMutation = usePrepareWriteAndWaitTx({
-    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    abi: basicFevmDalnABI,
-    functionName: "decrypt",
-    args: [[tokenInfos?.[0] ? tokenInfos?.[0].id : undefined]],
-    overrides: {
-      value: tokenInfos?.[0] ? tokenInfos[0].price : undefined,
-    },
-  });
-
-  const [isMouseOverRowId, setIsMouseOverRowId] = useState("");
-
-  const [pressedDecryptRow, setPressedDecryptRow] = useState<Row<Item> | null>(
-    null
-  );
-
-  const [isWaitingForApproval, setIsWaitingForApproval] = useState(false);
   const [rowSelection, setRowSelection] = React.useState({});
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [tokensToDecrypt, setTokensToDecrypt] = useState<
+    NonNullable<ReturnType<typeof useBasicFevmDalnGetTokenInfo>["data"]>[]
+  >([]);
 
   const [statusFilter, setStatusFilter] = React.useState<
     null | "Decrypted" | "Encrypted"
@@ -234,25 +235,49 @@ export default function AdminDataTable({
     filterFns: {
       isDecryptedFilterFn,
     },
+    meta: {
+      decryptSingleRow: (id: BigNumber) => {
+        const token = tokenInfos.find((token) => token.id === id);
+        if (!token) return;
+        setTokensToDecrypt([token]);
+      },
+    },
   });
 
   const rowSelectedIds = Object.keys(rowSelection);
-  const rowSelectedqty = rowSelectedIds.length;
-  const rowSelectedTotalSessionPayment = useMemo(() => {
-    rowSelectedIds;
-    let totalSessionPaymentAux = 0;
-    rowSelectedIds.forEach((id) => {
-      const paymentAmount: number = table.getRow(id).getValue("sessionPayment");
-      totalSessionPaymentAux += paymentAmount;
-    });
-    return totalSessionPaymentAux.toFixed(2);
-  }, [table, rowSelectedIds]);
 
-  useEffect(() => {
-    if (pressedDecryptRow) {
-      onOpen();
+  const totalPayment = useMemo(
+    () =>
+      rowSelectedIds.reduce((acc, id) => {
+        let price = BigNumber.from(0);
+        try {
+          price = table.getRow(id).original.price;
+        } catch (e) {
+          price = BigNumber.from(0);
+        }
+        return acc.add(price);
+      }, BigNumber.from(0)),
+    [rowSelectedIds, table]
+  );
+
+  const rowSelectedqty = rowSelectedIds.length;
+
+  const onDecryptMultiple = () => {
+    const newTokensToDecrypt = rowSelectedIds
+      .map((id) =>
+        tokenInfos.find((token) => token.id === table.getRow(id).original.id)
+      )
+      .filter(Boolean) as NonNullable<
+      ReturnType<typeof useBasicFevmDalnGetTokenInfo>["data"]
+    >[];
+    if (newTokensToDecrypt.length > 0) {
+      setTokensToDecrypt(newTokensToDecrypt);
     }
-  }, [pressedDecryptRow, onOpen]);
+  };
+
+  const onCloseDecryptModal = () => {
+    setTokensToDecrypt([]);
+  };
 
   return (
     <>
@@ -272,8 +297,8 @@ export default function AdminDataTable({
                 color={"gray.500"}
                 fontSize="sm"
                 marginX={6}
-              >{`${rowSelectedTotalSessionPayment} Matic total session payment`}</Text>
-              <Button minWidth={"220px"} onClick={onOpen}>
+              >{`${formatEther(totalPayment)} FIL total session payment`}</Text>
+              <Button minWidth={"220px"} onClick={onDecryptMultiple}>
                 <Text>{`${`Decrypt selected ${rowSelectedqty} data set${
                   rowSelectedqty > 1 ? "s" : ""
                 }`}`}</Text>
@@ -310,23 +335,15 @@ export default function AdminDataTable({
                   <Tr
                     key={row.id}
                     sx={{
-                      "&:hover": {
+                      _hover: {
                         backgroundColor: "#F1F4F9",
                       },
-                    }}
-                    onMouseEnter={() => {
-                      setIsMouseOverRowId(row.id);
-                    }}
-                    onMouseLeave={() => {
-                      setIsMouseOverRowId("");
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <Td key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, {
                           ...cell.getContext(),
-                          hover: row.id === isMouseOverRowId,
-                          setPressedDecryptRow: () => setPressedDecryptRow(row),
                         })}
                       </Td>
                     ))}
@@ -337,70 +354,12 @@ export default function AdminDataTable({
           </Table>
         </Box>
       </TableContainer>
-      <>
-        <Modal
-          isOpen={isOpen}
-          onClose={() => {
-            setPressedDecryptRow(null);
-            onClose();
-          }}
-          isCentered
-          size="sm"
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader alignSelf="center">Decrypt Data</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Flex justifyContent="space-between" mb={2}>
-                <Text>Data sets #</Text>
-                <Text>{pressedDecryptRow ? 1 : rowSelectedqty}</Text>
-              </Flex>
-              <Flex justifyContent="space-between">
-                <Text>Total Payment</Text>
-                <Text>
-                  {pressedDecryptRow
-                    ? pressedDecryptRow.getValue("sessionPayment")
-                    : rowSelectedTotalSessionPayment}{" "}
-                  Matic
-                </Text>
-              </Flex>
-            </ModalBody>
 
-            <ModalFooter justifyContent={"space-between"}>
-              {isWaitingForApproval ? (
-                <Button size={"lg"} flex={1} isDisabled={true}>
-                  Waiting for approval...
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    size={"lg"}
-                    width={"150px"}
-                    variant="ghost"
-                    onClick={() => {
-                      setPressedDecryptRow(null);
-                      onClose();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size={"lg"}
-                    width={"150px"}
-                    onClick={() => {
-                      // setIsWaitingForApproval(true);
-                      decryptMutation.write?.();
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </>
-              )}
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </>
+      <DecryptionModal
+        isOpen={tokensToDecrypt.length > 0}
+        onClose={onCloseDecryptModal}
+        tokenInfos={tokensToDecrypt}
+      />
     </>
   );
 }
