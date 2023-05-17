@@ -127,7 +127,7 @@ const Home = () => {
               Monetizing credit card data for a future data economy
             </Text>
             <Flex w="full" maxW="4xl">
-              <StyledLinkBox href="/user" marginRight={10}>
+              <StyledLinkBox href="/user/dashboard" marginRight={10}>
                 <RoleOptionComponent
                   title="End users"
                   description="Have true ownership and of your data and get a reward whenever your data is decrypted"

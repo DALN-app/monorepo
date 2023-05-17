@@ -1,17 +1,25 @@
-import { Button, ButtonProps, ChakraProps, Flex } from "@chakra-ui/react";
+import { Button, ButtonProps, Flex } from "@chakra-ui/react";
 import axios, { AxiosError } from "axios";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { PlaidLinkOnSuccess, usePlaidLink } from "react-plaid-link";
 import { useMutation } from "react-query";
+import { useAccount } from "wagmi";
 
 interface SetAccessTokenResponse {
   success: true;
   plaidItemId: string;
 }
 
-const setAccessToken = async (public_token: string) => {
+const setAccessToken = async ({
+  public_token,
+  address,
+}: {
+  public_token: string;
+  address: string;
+}) => {
   const response = await axios.post("/api/set_access_token", {
     public_token,
+    address,
   });
   return response.data;
 };
@@ -27,10 +35,12 @@ export default function JoinDALNButton({
   isLoading = false,
   ...props
 }: JoinDALNButtonProps) {
+  const [isPlaidLinkLoading, setIsPlaidLinkLoading] = useState(false);
+  const { address } = useAccount();
   const { mutateAsync, isLoading: isLoadingSetAccessToken } = useMutation<
     SetAccessTokenResponse,
     AxiosError,
-    string
+    { public_token: string; address: string }
   >(setAccessToken, {
     onSuccess(data, variables, context) {
       sessionStorage.setItem("plaidItemId", data.plaidItemId);
@@ -45,7 +55,9 @@ export default function JoinDALNButton({
     public_token,
     metadata
   ) => {
-    await mutateAsync(public_token);
+    setIsPlaidLinkLoading(false);
+    if (!address) return;
+    await mutateAsync({ public_token, address });
   };
 
   const { open, ready } = usePlaidLink({
@@ -59,9 +71,12 @@ export default function JoinDALNButton({
         size="lg"
         maxWidth={382}
         flex={1}
-        isLoading={isLoading || isLoadingSetAccessToken}
+        isLoading={isLoading || isLoadingSetAccessToken || isPlaidLinkLoading}
         isDisabled={!linkToken || !ready || isDisabled}
-        onClick={() => open()}
+        onClick={() => {
+          setIsPlaidLinkLoading(true);
+          open();
+        }}
         {...props}
       >
         Join DALN

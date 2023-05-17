@@ -48,7 +48,7 @@ const BurntToken = () => {
           />
           <OnBoardingContentPiece
             title="Get rewards"
-            content="Get rewards in Matic whenever your data is decrypted"
+            content="Get rewards in FIL whenever your data is decrypted"
           />
 
           <OnBoardingContentPiece
@@ -61,7 +61,7 @@ const BurntToken = () => {
           <Text mb={3} color="gray.600">
             Change your mind?
           </Text>
-          <NextLink href="/user">
+          <NextLink href="/user/dashboard">
             <Button size="lg" px={16}>
               Re-join DALN
             </Button>

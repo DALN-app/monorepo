@@ -2,12 +2,6 @@ import { MongoClient } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
-interface PlaidTransactionSyncRequest extends NextApiRequest {
-  body: {
-    itemId: string;
-  };
-}
-
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
   baseOptions: {
@@ -33,10 +27,11 @@ async function getAccessToken(item_id: string) {
 
 // Fetches and returns all transactions from plaid
 export default async function handler(
-  req: PlaidTransactionSyncRequest,
+  req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const itemId = req.body.itemId;
+  const itemId = req.query.id as string;
+
   if (!itemId) {
     return res.status(400).send("Missing item ID");
   }

@@ -55,7 +55,7 @@ const OnboardingNotConnected = () => {
               <OnBoardingContentPiece
                 textAlign="start"
                 title="Get rewards"
-                content="Get rewards in Matic whenever your data is decrypted"
+                content="Get rewards in FIL whenever your data is decrypted"
                 mb={10}
               />
               <OnBoardingContentPiece

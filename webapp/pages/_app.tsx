@@ -1,10 +1,5 @@
 import "@rainbow-me/rainbowkit/styles.css";
-import {
-  Center,
-  ChakraProvider,
-  CircularProgress,
-  Flex,
-} from "@chakra-ui/react";
+import { ChakraProvider, Flex } from "@chakra-ui/react";
 import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { motion, AnimatePresence } from "framer-motion";
 import type { NextPage } from "next";
@@ -56,8 +51,8 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <WagmiConfig client={wagmiClient}>
-      <ChakraProvider theme={theme}>
-        <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains}>
+        <ChakraProvider theme={theme}>
           <AnimatePresence mode="wait" initial={false}>
             <QueryClientProvider client={queryClient}>
               <Flex minH="100vh" direction="column" w="full" bg="#F1F4F9">
@@ -65,8 +60,8 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
               </Flex>
             </QueryClientProvider>
           </AnimatePresence>
-        </RainbowKitProvider>
-      </ChakraProvider>
+        </ChakraProvider>
+      </RainbowKitProvider>
     </WagmiConfig>
   );
 }

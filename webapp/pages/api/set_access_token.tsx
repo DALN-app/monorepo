@@ -2,7 +2,14 @@ import { MongoClient } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
-async function setToken(userId: string, token: string, itemId: string) {
+import { OnboardingSteps } from "~~/types/onboarding";
+
+async function setToken(
+  userId: string,
+  token: string,
+  itemId: string,
+  address: string
+) {
   const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
   const dbClient = new MongoClient(url);
   const dbName = "daln";
@@ -13,6 +20,8 @@ async function setToken(userId: string, token: string, itemId: string) {
 
   await collection.insertOne({
     name: userId,
+    address,
+    onboardingStep: OnboardingSteps.Processing,
     plaid_access_token: token,
     plaid_item_id: itemId,
     plaid_history_synced: false,
@@ -23,6 +32,7 @@ async function setToken(userId: string, token: string, itemId: string) {
 interface SetTokenProps extends NextApiRequest {
   body: {
     public_token: string;
+    address: string;
   };
 }
 
@@ -53,7 +63,8 @@ export default async function handler(
       await setToken(
         "abc",
         response.data.access_token,
-        response.data.item_id
+        response.data.item_id,
+        req.body.address
       ).catch((error) => {
         console.log(`setToken() failed: ${error}`);
         res.status(500).send(error);

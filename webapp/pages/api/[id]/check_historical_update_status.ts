@@ -9,7 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { itemId } = req.query;
+  const itemId = req.query.id;
 
   await dbClient.connect();
 

@@ -1,34 +1,63 @@
 import {
-  Box,
   Center,
+  HStack,
+  Box,
   Checkbox,
   Flex,
   Heading,
-  HStack,
   Text,
   WrapItem,
   Link,
 } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
+
+import WalletConnectionCheck from "./WalletConnectionCheck";
 
 import JoinDALNButton from "~~/components/JoinDALNButton";
-import ConnectedLayout from "~~/components/layouts/ConnectedLayout";
 import Card from "~~/components/OnBoardingCard";
+import { useBasicFevmDalnBalanceOf } from "~~/generated/wagmiTypes";
 import useMutationCreateToken from "~~/hooks/useMutationCreateToken";
-import { NextPageWithLayout } from "~~/pages/_app";
 
-const NoTokenPage: NextPageWithLayout = () => {
+interface HasSBTCheckProps {
+  onSuccess: () => void;
+  isFetchingStep?: boolean;
+}
+
+function HasSBTCheck({ onSuccess, isFetchingStep }: HasSBTCheckProps) {
+  const { address } = useAccount();
+  const connection = useConnect();
+
+  const [shouldLoad, setShouldLoad] = useState(true);
+
+  const balanceQuery = useBasicFevmDalnBalanceOf({
+    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
+    args: [address || "0x0"],
+    enabled: !!address,
+  });
+
+  useEffect(() => {
+    if (
+      !connection.isLoading &&
+      ((address && balanceQuery.isFetched) || !address)
+    ) {
+      setShouldLoad(false);
+    }
+  }, [connection.isLoading, balanceQuery.isFetched, address]);
+
   const [acceptTerms, setAcceptTerms] = useState(false);
   const { isLoading, isError, data, mutate } = useMutationCreateToken({});
   const linkToken = data?.link_token;
-  const router = useRouter();
 
   useEffect(() => {
     if (acceptTerms) {
       mutate();
     }
   }, [mutate, acceptTerms]);
+
+  if (shouldLoad) {
+    return <Center h="100vh">Loading...</Center>;
+  }
 
   return (
     <Center
@@ -98,16 +127,16 @@ const NoTokenPage: NextPageWithLayout = () => {
           </WrapItem>
 
           <Flex justifyContent="center">
-            <JoinDALNButton
-              linkToken={linkToken}
-              isDisabled={!acceptTerms || isError || !linkToken}
-              isLoading={isLoading}
-              onSuccess={() => {
-                void router.replace("/user/onboarding/upload-data");
-              }}
-            >
-              Join DALN
-            </JoinDALNButton>
+            <WalletConnectionCheck>
+              <JoinDALNButton
+                linkToken={linkToken}
+                isDisabled={!acceptTerms || isError || !linkToken}
+                isLoading={isLoading || isFetchingStep}
+                onSuccess={onSuccess}
+              >
+                Join DALN
+              </JoinDALNButton>
+            </WalletConnectionCheck>
           </Flex>
           <Flex justifyContent="center" mt={8}>
             <Text ml={2} maxWidth={720} fontSize="sm" align="center">
@@ -120,10 +149,6 @@ const NoTokenPage: NextPageWithLayout = () => {
       </Box>
     </Center>
   );
-};
+}
 
-NoTokenPage.getLayout = function getLayout(page) {
-  return <ConnectedLayout>{page}</ConnectedLayout>;
-};
-
-export default NoTokenPage;
+export default HasSBTCheck;

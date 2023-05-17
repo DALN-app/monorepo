@@ -52,7 +52,7 @@ export default function BurnSBT({
 
   useEffect(() => {
     if (userBurn.isSuccess && balanceQuery.data && balanceQuery.data.lte(0)) {
-      void router.push("/user/burnt-token");
+      void router.push("/user/dashboard");
     }
   }, [balanceQuery.data, onClose, router, userBurn.isSuccess]);
 

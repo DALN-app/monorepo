@@ -8,7 +8,7 @@ interface WalletConnectionCheckProps {
   notConnectedContent?: React.ReactNode;
   unsupportedProps?: ComponentProps<typeof Button>;
   unsupportedContent?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const WalletConnectionCheck = ({
