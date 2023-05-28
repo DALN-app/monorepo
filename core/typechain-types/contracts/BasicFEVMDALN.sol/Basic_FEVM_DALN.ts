@@ -54,8 +54,8 @@ export declare namespace Basic_FEVM_DALN {
 
 export interface Basic_FEVM_DALNInterface extends utils.Interface {
   functions: {
+    "ADMIN()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
-    "USER_ROLE()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
@@ -88,8 +88,8 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "ADMIN"
       | "DEFAULT_ADMIN_ROLE"
-      | "USER_ROLE"
       | "approve"
       | "balanceOf"
       | "burn"
@@ -120,11 +120,11 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
       | "transferFrom"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "ADMIN", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "USER_ROLE", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
@@ -245,11 +245,11 @@ export interface Basic_FEVM_DALNInterface extends utils.Interface {
     ]
   ): string;
 
+  decodeFunctionResult(functionFragment: "ADMIN", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "USER_ROLE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
@@ -441,9 +441,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
+    ADMIN(overrides?: CallOverrides): Promise<[string]>;
 
-    USER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -598,9 +598,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+  ADMIN(overrides?: CallOverrides): Promise<string>;
 
-  USER_ROLE(overrides?: CallOverrides): Promise<string>;
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
   approve(
     to: PromiseOrValue<string>,
@@ -755,9 +755,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
+    ADMIN(overrides?: CallOverrides): Promise<string>;
 
-    USER_ROLE(overrides?: CallOverrides): Promise<string>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -981,9 +981,9 @@ export interface Basic_FEVM_DALN extends BaseContract {
   };
 
   estimateGas: {
-    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+    ADMIN(overrides?: CallOverrides): Promise<BigNumber>;
 
-    USER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
     approve(
       to: PromiseOrValue<string>,
@@ -1134,11 +1134,11 @@ export interface Basic_FEVM_DALN extends BaseContract {
   };
 
   populateTransaction: {
+    ADMIN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     DEFAULT_ADMIN_ROLE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    USER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     approve(
       to: PromiseOrValue<string>,

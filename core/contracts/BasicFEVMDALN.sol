@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
   using Counters for Counters.Counter;
 
-  bytes32 public constant USER_ROLE = keccak256("USER");
+  bytes32 public constant ADMIN = keccak256("ADMIN");
 
   struct TokenInfo {
     uint256 id;
@@ -26,7 +26,6 @@ contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
 
   constructor() ERC721("Basic_FEVM_DALN", "DALN") {
     _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-    _setRoleAdmin(USER_ROLE, DEFAULT_ADMIN_ROLE);
   }
 
   function safeMint(string memory cid) public {
@@ -156,7 +155,7 @@ contract Basic_FEVM_DALN is ERC721, ERC721Enumerable, AccessControl {
   }
 
   function isAdmin(address account) public view returns (bool) {
-    return hasRole(DEFAULT_ADMIN_ROLE, account);
+    return hasRole(ADMIN, account) || hasRole(DEFAULT_ADMIN_ROLE, account);
   }
 
   function supportsInterface(
