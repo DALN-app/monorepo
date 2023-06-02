@@ -7,7 +7,7 @@ import type { AppProps } from "next/app";
 import { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { WagmiConfig, configureChains, createClient } from "wagmi";
-import { filecoinHyperspace } from "wagmi/chains";
+import { filecoinCalibration } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 
@@ -24,7 +24,7 @@ type AppPropsWithLayout = AppProps & {
 const queryClient = new QueryClient();
 
 const { chains, provider, webSocketProvider } = configureChains(
-  [filecoinHyperspace],
+  [filecoinCalibration],
   [
     alchemyProvider({
       apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,

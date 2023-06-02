@@ -25,11 +25,11 @@ const config: HardhatUserConfig = {
       name: "mumbai",
       chainId: 80001,
     },
-    fevmTestnet: {
-      url: "https://filecoin-hyperspace.chainstacklabs.com/rpc/v1",
+    filecoinCalibration: {
+      url: "https://api.calibration.node.glif.io/rpc/v1",
       accounts: [process.env.FEVM_TESTNET_PRIVATE_KEY],
-      name: "fevmTestnet",
-      chainId: 3141,
+      name: "Filecoin Calibration",
+      chainId: 314159,
     },
   },
   etherscan: {
