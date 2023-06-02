@@ -12,7 +12,7 @@
     "deploy:goerli": "hardhat deploy --network goerli --export-all ./generated/hardhat_contracts.json",
     "deploy:polygon": "hardhat deploy --network polygon --export-all ./generated/hardhat_contracts.json",
     "deploy:mumbai": "hardhat deploy --network mumbai --export-all ./generated/hardhat_contracts.json",
-    "deploy:fevmTestnet": "hardhat deploy --network fevmTestnet --export-all ./generated/hardhat_contracts.json",
+    "deploy:filecoinCalibration": "hardhat deploy --network filecoinCalibration --export-all ./generated/hardhat_contracts.json",
     "generate": "hardhat export --export-all ./generated/hardhat_contracts.json"
   },
   "prettier": {
