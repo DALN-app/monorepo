@@ -15,20 +15,23 @@ interface HasSBTProps {
 const HasSBT = ({ children }: HasSBTProps) => {
   const { address } = useAccount();
   const { isLoading } = useConnect();
-  const { data: stepData, isFetchedAfterMount: isStepFetchedAfterMount } =
-    useQuery(
-      ["get_onboarding_step", address],
-      async () => {
-        const response = await axios.get<{
-          onboardingStep: OnboardingSteps;
-        }>(`/api/${address}/get_onboarding_step`);
-        return response.data;
-      },
-      {
-        retry: false,
-        refetchOnWindowFocus: false,
-      }
-    );
+  const {
+    data: stepData,
+    isFetchedAfterMount: isStepFetched,
+    isError,
+  } = useQuery(
+    ["get_onboarding_step", address],
+    async () => {
+      const response = await axios.get<{
+        onboardingStep: OnboardingSteps;
+      }>(`/api/${address}/get_onboarding_step`);
+      return response.data;
+    },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   const loader = useMemo(() => {
     return (
@@ -40,14 +43,14 @@ const HasSBT = ({ children }: HasSBTProps) => {
 
   return (
     <PageTransition>
-      {isLoading || (address && !isStepFetchedAfterMount) ? (
+      {isLoading || (address && !isStepFetched) ? (
         loader
       ) : (
         <>
-          {stepData?.onboardingStep &&
-            stepData.onboardingStep !== OnboardingSteps.MintSuccess && (
-              <OverlayOnboarding />
-            )}
+          {(isError ||
+            stepData?.onboardingStep !== OnboardingSteps.MintSuccess) && (
+            <OverlayOnboarding />
+          )}
           {children}
         </>
       )}
