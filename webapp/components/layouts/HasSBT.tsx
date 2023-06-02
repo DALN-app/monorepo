@@ -1,12 +1,12 @@
 import { Center, CircularProgress } from "@chakra-ui/react";
-import { BigNumber } from "ethers";
+import axios from "axios";
 import { useMemo } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useQuery } from "wagmi";
 
 import OverlayOnboarding from "../OverlayOnboarding";
 
 import PageTransition from "~~/components/PageTransition";
-import { useBasicFevmDalnBalanceOf } from "~~/generated/wagmiTypes";
+import { OnboardingSteps } from "~~/types/onboarding";
 
 interface HasSBTProps {
   children: React.ReactNode;
@@ -15,11 +15,20 @@ interface HasSBTProps {
 const HasSBT = ({ children }: HasSBTProps) => {
   const { address } = useAccount();
   const { isLoading } = useConnect();
-  const balanceQuery = useBasicFevmDalnBalanceOf({
-    address: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`,
-    args: [address || "0x0"],
-    enabled: !!address,
-  });
+  const { data: stepData, isFetchedAfterMount: isStepFetchedAfterMount } =
+    useQuery(
+      ["get_onboarding_step", address],
+      async () => {
+        const response = await axios.get<{
+          onboardingStep: OnboardingSteps;
+        }>(`/api/${address}/get_onboarding_step`);
+        return response.data;
+      },
+      {
+        retry: false,
+        refetchOnWindowFocus: false,
+      }
+    );
 
   const loader = useMemo(() => {
     return (
@@ -31,11 +40,14 @@ const HasSBT = ({ children }: HasSBTProps) => {
 
   return (
     <PageTransition>
-      {!isLoading && address && !balanceQuery.isFetched ? (
+      {isLoading || (address && !isStepFetchedAfterMount) ? (
         loader
       ) : (
         <>
-          {balanceQuery.data?.lte(BigNumber.from(0)) && <OverlayOnboarding />}
+          {stepData?.onboardingStep &&
+            stepData.onboardingStep !== OnboardingSteps.MintSuccess && (
+              <OverlayOnboarding />
+            )}
           {children}
         </>
       )}

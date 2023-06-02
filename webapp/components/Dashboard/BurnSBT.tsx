@@ -8,9 +8,11 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from "@chakra-ui/react";
+import axios from "axios";
 import { BigNumber } from "ethers";
 import { useRouter } from "next/router";
 import { Component, ComponentProps, useEffect, useRef } from "react";
+import { useMutation } from "react-query";
 import { useAccount } from "wagmi";
 
 import {
@@ -50,6 +52,17 @@ export default function BurnSBT({
       !!process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS && tokenId !== undefined,
   });
 
+  const burnFromDBMutation = useMutation(
+    async () => {
+      await axios.post(`/api/${address}/burn`);
+    },
+    {
+      onSuccess: () => {
+        router.reload();
+      },
+    }
+  );
+
   useEffect(() => {
     if (userBurn.isSuccess && balanceQuery.data && balanceQuery.data.lte(0)) {
       void router.push("/user/dashboard");
@@ -60,6 +73,7 @@ export default function BurnSBT({
     if (userBurn.writeAsync) {
       try {
         await userBurn.writeAsync();
+        await burnFromDBMutation.mutateAsync();
       } catch (e) {
         console.error("burn error", e);
         onClose();
