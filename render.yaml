@@ -2,5 +2,9 @@ services:
   - type: web
     name: frontend-api
     env: node
+    rootDir: webapp
     buildCommand: npm i; npm run web:build;
     startCommand: npm run web:start;
+    envVars:
+  - key: NODE_ENV
+    value: production
