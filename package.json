@@ -18,6 +18,7 @@
     "generate": "npm run core:compile && npm run core:generate && npm run web:generate"
   },
   "dependencies": {
+    "@lighthouse-web3/sdk": "^0.2.5",
     "dotenv": "^16.0.3",
     "hardhat": "^2.12.7",
     "plaid": "^12.4.0",
