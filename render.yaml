@@ -3,6 +3,6 @@ services:
     name: frontend-api
     env: node
     rootDir: webapp
-    buildCommand: cd ..; npm i; cd webapp; npm run build;
-    startCommand: cd webapp; npm run start;
+    buildCommand: cd ..; npm i; npm run web:build;
+    startCommand: cd ..; npm run web:start;
 
