@@ -218,7 +218,10 @@ function OverlayOnboarding() {
           setStep(OnboardingSteps.Encryption);
         }
       },
-      enabled: !!plaidItemId && step === OnboardingSteps.FetchingPlaid,
+      enabled:
+        !!plaidItemId &&
+        (step === OnboardingSteps.FetchingPlaid ||
+          step === OnboardingSteps.Encryption),
     }
   );
 
@@ -311,7 +314,9 @@ function OverlayOnboarding() {
                 flex={1}
                 mb={2}
                 isLoading={
-                  uploadEncryptedMutation.isLoading || setStepMutation.isLoading
+                  uploadEncryptedMutation.isLoading ||
+                  setStepMutation.isLoading ||
+                  plaidTransactionSync.isLoading
                 }
                 onClick={async () => {
                   const data = JSON.stringify(
@@ -339,6 +344,7 @@ function OverlayOnboarding() {
     ),
     [
       plaidTransactionSync.data,
+      plaidTransactionSync.isLoading,
       setStepMutation,
       uploadEncryptedMutation.isLoading,
       uploadFileEncrypted,

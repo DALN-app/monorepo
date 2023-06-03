@@ -118,6 +118,7 @@ const Home = () => {
             <Box>
               <Image
                 src="/logo-title.png"
+                alt="logo"
                 quality={100}
                 width={292}
                 height={112}

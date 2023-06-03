@@ -1,8 +1,4 @@
-import { watch } from "fs";
-
 import {
-  Box,
-  Button,
   Card,
   CardBody,
   CardHeader,
@@ -67,11 +63,7 @@ const Dashboard: NextPageWithLayout = () => {
 
               <CardBody>
                 <SimpleGrid columns={[1, 2]} spacing={5}>
-                  <DashboardStat
-                    label="Rewards"
-                    helpText="Matic"
-                    number="1.27"
-                  />
+                  <DashboardStat label="Rewards" helpText="FIL" number="1.27" />
                   <DashboardStat label="Decryption Sessions" number="5" />
                   <DashboardStat
                     label="Token ID"
@@ -90,7 +82,7 @@ const Dashboard: NextPageWithLayout = () => {
                           .NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as `0x${string}`
                       ).slice(-5)
                     }
-                    href={`https://beryx.zondax.ch/v1/search/fil/hyperspace/address/${
+                    href={`https://calibration.filfox.info/en/address/${
                       process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS as string
                     }`}
                     isExternalHref

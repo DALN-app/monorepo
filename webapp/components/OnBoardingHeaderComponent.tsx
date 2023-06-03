@@ -9,7 +9,7 @@ const OnBoardingHeaderComponent: React.FC<{
   return (
     <Flex justifyContent="center" direction="column" alignItems="center">
       <Box h="112px" maxW="300px" w="100%" pos="relative" mb={4}>
-        <Image src="/logo-title.png" layout="fill" quality={100} />
+        <Image src="/logo-title.png" alt="logo" fill quality={100} />
       </Box>
       <Heading as="h2" size="md" textAlign="center">
         {description}

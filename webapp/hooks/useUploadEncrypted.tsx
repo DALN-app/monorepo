@@ -61,6 +61,8 @@ function useUploadEncrypted() {
       return;
     }
 
+    const getAuthMessage = await lighthouse.getAuthMessage(address);
+
     const messageRequested = (await lighthouse.getAuthMessage(address)).data
       .message;
 

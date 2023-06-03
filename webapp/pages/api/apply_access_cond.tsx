@@ -19,7 +19,7 @@ export default async function handler(
     const conditions = [
       {
         id: 1,
-        chain: "Hyperspace",
+        chain: "Calibration",
         contractAddress: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS,
         parameters: [req.body.tokenId],
         method: "getIsTokenDecrypted",
@@ -33,7 +33,7 @@ export default async function handler(
       },
       {
         id: 2,
-        chain: "Hyperspace",
+        chain: "Calibration",
         contractAddress: process.env.NEXT_PUBLIC_DALN_CONTRACT_ADDRESS,
         parameters: [":userAddress"],
         method: "isAdmin",
