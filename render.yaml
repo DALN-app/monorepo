@@ -3,3 +3,4 @@ services:
     name: frontend-api
     buildCommand: npm i; cd webapp; npm build;
     startCommand: cd webapp; npm start;
+    staticPublishPath: ./webapp/.next/server
