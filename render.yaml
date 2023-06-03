@@ -5,6 +5,4 @@ services:
     rootDir: webapp
     buildCommand: npm i; cd webapp; npm run build;
     startCommand: cd webapp; npm run start;
-    envVars:
-  - key: NODE_ENV
-    value: production
+
