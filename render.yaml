@@ -1,6 +1,6 @@
 services:
   - type: web
     name: frontend-api
-    rootDir: webapp
+    env: node
     buildCommand: npm i; cd webapp; npm build;
     startCommand: cd webapp; npm start;
