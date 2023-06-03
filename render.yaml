@@ -1,7 +1,5 @@
 services:
   - type: web
     name: frontend-api
-    branch: fevm
-    env: static
     buildCommand: npm i; cd webapp; npm build;
     startCommand: cd webapp; npm start;
