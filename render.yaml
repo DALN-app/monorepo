@@ -2,5 +2,5 @@ services:
   - type: web
     name: frontend-api
     env: node
-    buildCommand: npm i; cd webapp; npx next build;
-    startCommand: cd webapp; npx next start;
+    buildCommand: npm i; npm run web:build;
+    startCommand: npm run web:start;
