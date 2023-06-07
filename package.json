@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "webapp",
-    "core"
+    "core",
+    "server"
   ],
   "scripts": {
     "hardhat": "npm run --workspace=core hardhat",

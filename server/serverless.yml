@@ -1,0 +1,16 @@
+service: daln-server
+frameworkVersion: "3"
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-plugin-include-dependencies
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi: "*"

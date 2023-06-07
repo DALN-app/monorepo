@@ -14,11 +14,14 @@ const uploadEncrypted = async ({
   signedMessage: string;
   publicKey: string;
 }) => {
-  const response = await axios.post("/api/upload_encrypted", {
-    data,
-    signedMessage,
-    publicKey,
-  });
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/upload_encrypted`,
+    {
+      data,
+      signedMessage,
+      publicKey,
+    }
+  );
   return response.data as {
     data: {
       Name: string;

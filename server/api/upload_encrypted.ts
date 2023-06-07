@@ -1,11 +1,13 @@
+import { Request, Response } from "express";
 import * as fs from "fs/promises";
 import * as path from "path";
-
 import lighthouse from "@lighthouse-web3/sdk";
-import { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
+import express from "express";
 
-interface UploadEncrypted extends NextApiRequest {
+const router = express.Router();
+
+interface UploadEncrypted extends Request {
   body: {
     data: string;
     signedMessage: string;
@@ -13,10 +15,7 @@ interface UploadEncrypted extends NextApiRequest {
   };
 }
 
-export default async function handler(
-  req: UploadEncrypted,
-  res: NextApiResponse
-) {
+router.post("/", async (req: UploadEncrypted, res: Response) => {
   try {
     const filename = uuidv4();
 
@@ -30,6 +29,10 @@ export default async function handler(
     console.log("File created: ", filePath);
     console.log("File content: ", readFile);
     console.log("file", file);
+
+    if (!process.env.LIGHTHOUSE_API_KEY) {
+      throw new Error("LIGHTHOUSE_API_KEY not found");
+    }
 
     const encryptedFile = (await lighthouse.uploadEncrypted(
       filePath,
@@ -51,4 +54,6 @@ export default async function handler(
     console.log(error);
     return res.status(500).send(error);
   }
-}
+});
+
+export default router;
