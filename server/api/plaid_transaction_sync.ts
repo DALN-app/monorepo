@@ -1,6 +1,6 @@
+import express, { Request, Response } from "express";
 import { MongoClient } from "mongodb";
-import { NextApiRequest, NextApiResponse } from "next";
-import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
+import { Configuration, PlaidApi, PlaidEnvironments, Transaction } from "plaid";
 
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
@@ -11,6 +11,8 @@ const configuration = new Configuration({
     },
   },
 });
+
+const router = express.Router();
 
 async function getAccessToken(item_id: string) {
   const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
@@ -26,11 +28,8 @@ async function getAccessToken(item_id: string) {
 }
 
 // Fetches and returns all transactions from plaid
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const itemId = req.query.id as string;
+router.get("/:id", async (req: Request, res: Response) => {
+  const itemId = req.params.id as string;
 
   if (!itemId) {
     return res.status(400).send("Missing item ID");
@@ -40,7 +39,7 @@ export default async function handler(
 
   const client = new PlaidApi(configuration);
 
-  const transactions = [];
+  const transactions = [] as Transaction[];
   let hasMore = true;
   let cursor = undefined as string | undefined;
 
@@ -61,4 +60,6 @@ export default async function handler(
   } catch (e) {
     return res.status(500).send(e);
   }
-}
+});
+
+export default router;

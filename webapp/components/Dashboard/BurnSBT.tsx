@@ -54,7 +54,9 @@ export default function BurnSBT({
 
   const burnFromDBMutation = useMutation(
     async () => {
-      await axios.post(`/api/${address}/burn`);
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/burn/${address}`
+      );
     },
     {
       onSuccess: () => {

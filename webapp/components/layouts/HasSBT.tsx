@@ -24,7 +24,9 @@ const HasSBT = ({ children }: HasSBTProps) => {
     async () => {
       const response = await axios.get<{
         onboardingStep: OnboardingSteps;
-      }>(`/api/${address}/get_onboarding_step`);
+      }>(
+        `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/get_onboarding_step/${address}`
+      );
       return response.data;
     },
     {

@@ -1,5 +1,5 @@
+import express, { Request, Response } from 'express';
 import { MongoClient } from "mongodb";
-import { NextApiRequest, NextApiResponse } from "next";
 
 async function connectMongo() {
   const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
@@ -13,29 +13,30 @@ async function connectMongo() {
   return collection;
 }
 
-interface SetOnboardingStep extends NextApiRequest {
+interface SetOnboardingStep extends Request {
   query: {
     id: string;
   };
 }
 
-export default async function handler(
-  req: SetOnboardingStep,
-  res: NextApiResponse
-) {
+const router = express.Router();
+
+router.delete('/:id', async (req: SetOnboardingStep, res: Response) => {
   const collection = await connectMongo();
 
-  const user = await collection.findOne({ address: req.query.id });
+  const user = await collection.findOne({ address: req.params.id });
 
   if (user) {
     try {
-      await collection.findOneAndDelete({ address: req.query.id });
+      await collection.findOneAndDelete({ address: req.params.id });
 
       return res.status(201).send("User removed from collection");
     } catch (e) {
       return res.status(500).send("Error removing user from collection");
     }
   } else {
-    return res.status(400).send("Error, user doesnt exist");
+    return res.status(400).send("Error, user doesn't exist");
   }
-}
+});
+
+export default router;

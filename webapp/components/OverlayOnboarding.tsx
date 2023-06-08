@@ -78,13 +78,15 @@ const steps = {
 
 const getHistoricalUpdateStatus = async (plaidItemId: string) => {
   const response = await axios.get(
-    `/api/${plaidItemId}/check_historical_update_status`
+    `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/check_historical_update_status/${plaidItemId}`
   );
   return response.data;
 };
 
 const getPlaidTransactionSync = async (itemId: string) => {
-  const response = await axios.get(`/api/${itemId}/plaid_transaction_sync`);
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/plaid_transaction_sync/${itemId}`
+  );
   return response.data;
 };
 
@@ -106,7 +108,9 @@ function OverlayOnboarding() {
         onboardingStep: OnboardingSteps;
         plaidItemId?: string;
         cid?: string;
-      }>(`/api/${userAddress}/get_onboarding_step`);
+      }>(
+        `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/get_onboarding_step/${userAddress}`
+      );
       return response.data;
     },
     {
@@ -126,10 +130,13 @@ function OverlayOnboarding() {
 
   const setStepMutation = useMutation(
     async ({ newStep, cid }: { newStep: keyof typeof steps; cid?: string }) => {
-      await axios.post(`/api/${userAddress}/set_onboarding_step`, {
-        onboardingStep: newStep,
-        cid,
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/set_onboarding_step/${userAddress}`,
+        {
+          onboardingStep: newStep,
+          cid,
+        }
+      );
     },
     {
       onMutate: async ({ newStep, cid }) => {

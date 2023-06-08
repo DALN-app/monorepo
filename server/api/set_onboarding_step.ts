@@ -1,7 +1,7 @@
+import express, { Request, Response } from "express";
 import { MongoClient } from "mongodb";
-import { NextApiRequest, NextApiResponse } from "next";
 
-import { OnboardingSteps } from "~~/types/onboarding";
+import { OnboardingSteps } from "../enums";
 
 async function connectMongo() {
   const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
@@ -15,20 +15,19 @@ async function connectMongo() {
   return collection;
 }
 
-interface SetOnboardingStep extends NextApiRequest {
+const router = express.Router();
+
+interface SetOnboardingStep extends Request {
   body: {
     onboardingStep: OnboardingSteps;
     cid?: string;
   };
-  query: {
+  params: {
     id: string;
   };
 }
 
-export default async function handler(
-  req: SetOnboardingStep,
-  res: NextApiResponse
-) {
+router.post("/:id", async (req: SetOnboardingStep, res: Response) => {
   const { onboardingStep, cid } = req.body;
 
   const maybeOnboardingStep = (
@@ -90,4 +89,6 @@ export default async function handler(
   } else {
     return res.status(400).send("Invalid onboarding step");
   }
-}
+});
+
+export default router;

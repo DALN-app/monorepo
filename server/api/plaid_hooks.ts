@@ -1,5 +1,6 @@
+import express from 'express';
 import Cors from "cors";
-import { NextApiRequest, NextApiResponse } from "next";
+import { Request, Response } from "express";
 import {
   Configuration,
   CountryCode,
@@ -8,10 +9,6 @@ import {
   PlaidEnvironments,
   Products,
 } from "plaid";
-
-const cors = Cors({
-  methods: ["POST", "GET", "HEAD"],
-});
 
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
@@ -26,8 +23,8 @@ const configuration = new Configuration({
 // Helper method to wait for a middleware to execute before continuing
 // And to throw an error when an error happens in a middleware
 function runMiddleware(
-  req: NextApiRequest,
-  res: NextApiResponse,
+  req: Request,
+  res: Response,
   fn: (arg0: any, args1: any, args2: any) => any
 ) {
   return new Promise((resolve, reject) => {
@@ -41,12 +38,9 @@ function runMiddleware(
   });
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  await runMiddleware(req, res, cors);
+const router = express.Router();
 
+router.post('/', async (req: Request, res: Response) => {
   const client = new PlaidApi(configuration);
 
   await client
@@ -75,4 +69,6 @@ export default async function handler(
       console.log(`create link token failed: ${error}`);
       res.status(500).send(error);
     });
-}
+});
+
+export default router;

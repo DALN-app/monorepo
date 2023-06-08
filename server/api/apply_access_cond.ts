@@ -1,8 +1,9 @@
+import express from "express";
 import lighthouse from "@lighthouse-web3/sdk";
 import { BigNumberish } from "ethers";
-import { NextApiRequest, NextApiResponse } from "next";
+import { Request, Response } from "express";
 
-interface ApplyAccessConditionRequest extends NextApiRequest {
+interface ApplyAccessConditionRequest extends Request {
   body: {
     cid: string;
     tokenId: BigNumberish;
@@ -11,10 +12,9 @@ interface ApplyAccessConditionRequest extends NextApiRequest {
   };
 }
 
-export default async function handler(
-  req: ApplyAccessConditionRequest,
-  res: NextApiResponse
-) {
+const router = express.Router();
+
+router.post("/", async (req: ApplyAccessConditionRequest, res: Response) => {
   try {
     const conditions = [
       {
@@ -61,4 +61,6 @@ export default async function handler(
   } catch (error) {
     return res.status(500).send(error);
   }
-}
+});
+
+export default router;

@@ -17,10 +17,13 @@ const setAccessToken = async ({
   public_token: string;
   address: string;
 }) => {
-  const response = await axios.post("/api/set_access_token", {
-    public_token,
-    address,
-  });
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/set_access_token`,
+    {
+      public_token,
+      address,
+    }
+  );
   return response.data;
 };
 interface JoinDALNButtonProps extends ButtonProps {

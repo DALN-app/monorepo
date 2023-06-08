@@ -1,8 +1,7 @@
+import express, { Request, Response } from "express";
 import { MongoClient } from "mongodb";
-import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
-
-import { OnboardingSteps } from "~~/types/onboarding";
+import { OnboardingSteps } from "../enums";
 
 async function setToken(
   userId: string,
@@ -28,18 +27,16 @@ async function setToken(
   });
 }
 
-// Initiates plaid transaction sync. Receiving plaid access token and item id, storing it in our db. We set plaid_history_synced to false, on the frontend we will check if it's true. When it's true, we will know that plaid has the transaction history ready to fetch.
-interface SetTokenProps extends NextApiRequest {
+interface SetTokenProps extends Request {
   body: {
     public_token: string;
     address: string;
   };
 }
 
-export default async function handler(
-  req: SetTokenProps,
-  res: NextApiResponse
-) {
+const router = express.Router();
+
+router.post("/", async (req: SetTokenProps, res: Response) => {
   const configuration = new Configuration({
     basePath: PlaidEnvironments.sandbox,
     baseOptions: {
@@ -88,4 +85,6 @@ export default async function handler(
     .finally(() => {
       res.status(200).json({ success: true, plaidItemId });
     });
-}
+});
+
+export default router;
