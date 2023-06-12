@@ -1,7 +1,8 @@
 import { Center, CircularProgress } from "@chakra-ui/react";
 import axios from "axios";
 import { useMemo } from "react";
-import { useAccount, useConnect, useQuery } from "wagmi";
+import { useQuery } from "react-query";
+import { useAccount, useConnect } from "wagmi";
 
 import OverlayOnboarding from "../OverlayOnboarding";
 

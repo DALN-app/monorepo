@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import { MongoClient } from "mongodb";
 import { Configuration, PlaidApi, PlaidEnvironments, Transaction } from "plaid";
+import AWS from "aws-sdk";
 
 const configuration = new Configuration({
   basePath: PlaidEnvironments.sandbox,
@@ -12,19 +12,22 @@ const configuration = new Configuration({
   },
 });
 
+const dynamoDB = new AWS.DynamoDB.DocumentClient({ region: "us-east-1" });
+
 const router = express.Router();
 
 async function getAccessToken(item_id: string) {
-  const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
-  const dbClient = new MongoClient(url);
-  const dbName = "daln";
+  const params = {
+    TableName: "users",
+    FilterExpression: "plaid_item_id = :itemId",
+    ExpressionAttributeValues: {
+      ":itemId": item_id,
+    },
+  };
 
-  const db = dbClient.db(dbName);
-  const collection = db.collection("users");
+  const data = await dynamoDB.scan(params).promise();
 
-  const item = await collection.findOne({ plaid_item_id: item_id });
-
-  return item?.plaid_access_token as string;
+  return data.Items?.[0]?.plaid_access_token as string;
 }
 
 // Fetches and returns all transactions from plaid

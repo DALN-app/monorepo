@@ -13,7 +13,7 @@ import {
   Container,
   Spinner,
 } from "@chakra-ui/react";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils.js";
 import { useCallback, useEffect, useMemo } from "react";
@@ -97,11 +97,7 @@ function OverlayOnboarding() {
   });
   const queryClient = useQueryClient();
 
-  const {
-    data: stepData,
-    refetch: refetchStep,
-    isFetching: isFetchingStep,
-  } = useQuery(
+  const { data: stepData, isFetching: isFetchingStep } = useQuery(
     ["get_onboarding_step", userAddress],
     async () => {
       const response = await axios.get<{
@@ -119,62 +115,40 @@ function OverlayOnboarding() {
     }
   );
 
-  const step = useMemo(() => {
-    return stepData?.onboardingStep;
-  }, [stepData?.onboardingStep]);
+  const step = stepData?.onboardingStep;
 
   const plaidItemId = useMemo(() => {
     if (typeof window === "undefined") return null;
     return stepData?.plaidItemId || sessionStorage.getItem("plaidItemId");
   }, [stepData?.plaidItemId]);
 
-  const setStepMutation = useMutation(
-    async ({ newStep, cid }: { newStep: keyof typeof steps; cid?: string }) => {
+  const setStepMutation = useMutation<
+    AxiosResponse<{
+      user: {
+        onboardingStep?: OnboardingSteps;
+        plaid_item_id?: string;
+        cid?: string;
+      };
+    }>,
+    unknown,
+    { newStep: keyof typeof steps; cid?: string }
+  >(
+    async ({ newStep, cid }) =>
       await axios.post(
         `${process.env.NEXT_PUBLIC_LAMBDA_SERVER_URL}/api/v1/set_onboarding_step/${userAddress}`,
         {
           onboardingStep: newStep,
           cid,
         }
-      );
-    },
+      ),
     {
-      onMutate: async ({ newStep, cid }) => {
-        // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-        await queryClient.cancelQueries(["get_onboarding_step", userAddress]);
-
-        // Snapshot the previous value
-        const previousStepResponse = queryClient.getQueryData([
-          "get_onboarding_step",
-          userAddress,
-        ]);
-
-        // Optimistically update to the new value
-        queryClient.setQueryData(
-          ["get_onboarding_step", userAddress],
-          (old: unknown) => ({
-            ...(old as {
-              onboardingStep: OnboardingSteps;
-              plaidItemId?: string;
-              cid?: string;
-            }),
-            onboardingStep: newStep,
-            ...(cid ? { cid } : {}),
-          })
-        );
-
-        // Return a context object with the snapshotted value
-        return { previousStepResponse };
-      },
-      // If the mutation fails, use the context returned from onMutate to roll back
-      onError: (err, newStep, context) => {
-        queryClient.setQueryData(
-          ["get_onboarding_step", userAddress],
-          context?.previousStepResponse
-        );
-      },
-      onSettled: () => {
-        void refetchStep();
+      onSuccess: ({ data }) => {
+        console.log("onsuccessdata", data);
+        queryClient.setQueryData(["get_onboarding_step", userAddress], {
+          onboardingStep: data.user.onboardingStep,
+          plaidItemId: data.user.plaid_item_id,
+          cid: data.user.cid,
+        });
       },
     }
   );
@@ -256,15 +230,6 @@ function OverlayOnboarding() {
       },
     }
   );
-
-  useEffect(() => {
-    if (
-      step === OnboardingSteps.SetAccess &&
-      applyAccessConditionMutation.isSuccess
-    ) {
-      setStep(OnboardingSteps.MintSuccess);
-    }
-  }, [applyAccessConditionMutation.isSuccess, setStep, step]);
 
   const loadingStep = useMemo(
     () => (
@@ -436,9 +401,10 @@ function OverlayOnboarding() {
                 isLoading={
                   applyAccessConditionMutation.isLoading ||
                   userTokenIdQuery.isLoading ||
-                  setStepMutation.isLoading
+                  setStepMutation.isLoading ||
+                  userTokenIdQuery.data === undefined
                 }
-                onClick={() => {
+                onClick={async () => {
                   if (userTokenIdQuery.data === undefined) {
                     console.error("TokenId not ready");
                     return;
@@ -447,10 +413,11 @@ function OverlayOnboarding() {
                     console.error("CID undefined");
                     return;
                   }
-                  void setAccessCondition(
+                  await setAccessCondition(
                     stepData?.cid,
                     userTokenIdQuery.data.toNumber()
                   );
+                  setStep(OnboardingSteps.MintSuccess);
                 }}
               >
                 Set access condition
@@ -467,6 +434,7 @@ function OverlayOnboarding() {
       setStepMutation.isLoading,
       stepData?.cid,
       setAccessCondition,
+      setStep,
     ]
   );
 
@@ -481,10 +449,7 @@ function OverlayOnboarding() {
       <ModalContent borderRadius="xl" overflow="hidden">
         <ModalBody py={12} bgColor="primary.50">
           {!step ? (
-            <HasSBTCheck
-              onSuccess={refetchStep}
-              isFetchingStep={isFetchingStep}
-            />
+            <HasSBTCheck isFetchingStep={isFetchingStep} />
           ) : (
             <Center
               sx={{

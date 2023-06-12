@@ -1,22 +1,24 @@
 import express, { Request, Response } from "express";
-import { MongoClient } from "mongodb";
+import AWS from "aws-sdk";
 
-const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
-const dbClient = new MongoClient(url);
-const dbName = "daln";
+const dynamoDB = new AWS.DynamoDB.DocumentClient({ region: "us-east-1" });
 
 const router = express.Router();
 
 router.get("/:id", async (req: Request, res: Response) => {
   const itemId = req.params.id;
 
-  await dbClient.connect();
-
-  const db = dbClient.db(dbName);
-  const collection = db.collection("users");
+  const params = {
+    TableName: "users",
+    FilterExpression: "plaid_item_id = :itemId",
+    ExpressionAttributeValues: {
+      ":itemId": itemId,
+    },
+  };
 
   try {
-    const item = await collection.findOne({ plaid_item_id: itemId });
+    const data = await dynamoDB.scan(params).promise();
+    const item = data.Items ? data.Items[0] : null;
     return res.status(200).send({ isSynced: !!item?.plaid_history_synced });
   } catch (e) {
     return res.status(500).send(e);

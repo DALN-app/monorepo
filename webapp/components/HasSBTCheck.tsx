@@ -20,11 +20,10 @@ import { useBasicFevmDalnBalanceOf } from "~~/generated/wagmiTypes";
 import useMutationCreateToken from "~~/hooks/useMutationCreateToken";
 
 interface HasSBTCheckProps {
-  onSuccess: () => void;
   isFetchingStep?: boolean;
 }
 
-function HasSBTCheck({ onSuccess, isFetchingStep }: HasSBTCheckProps) {
+function HasSBTCheck({ isFetchingStep }: HasSBTCheckProps) {
   const { address } = useAccount();
   const connection = useConnect();
 
@@ -132,7 +131,6 @@ function HasSBTCheck({ onSuccess, isFetchingStep }: HasSBTCheckProps) {
                 linkToken={linkToken}
                 isDisabled={!acceptTerms || isError || !linkToken}
                 isLoading={isLoading || isFetchingStep}
-                onSuccess={onSuccess}
               >
                 Join DALN
               </JoinDALNButton>

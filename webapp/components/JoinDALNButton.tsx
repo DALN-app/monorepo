@@ -1,13 +1,20 @@
 import { Button, ButtonProps, Flex } from "@chakra-ui/react";
-import axios, { AxiosError } from "axios";
-import { useCallback, useState } from "react";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { useState } from "react";
 import { PlaidLinkOnSuccess, usePlaidLink } from "react-plaid-link";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { useAccount } from "wagmi";
+
+import { OnboardingSteps } from "~~/types/onboarding";
 
 interface SetAccessTokenResponse {
   success: true;
   plaidItemId: string;
+  user: {
+    onboardingStep?: OnboardingSteps;
+    plaid_item_id?: string;
+    cid?: string;
+  };
 }
 
 const setAccessToken = async ({
@@ -28,26 +35,32 @@ const setAccessToken = async ({
 };
 interface JoinDALNButtonProps extends ButtonProps {
   linkToken?: string;
-  onSuccess?: (data?: any, variables?: any, context?: any) => void;
 }
 export default function JoinDALNButton({
   linkToken,
   onClick = () => null,
   isDisabled,
-  onSuccess = () => null,
   isLoading = false,
   ...props
 }: JoinDALNButtonProps) {
   const [isPlaidLinkLoading, setIsPlaidLinkLoading] = useState(false);
   const { address } = useAccount();
+
+  const queryClient = useQueryClient();
+
   const { mutateAsync, isLoading: isLoadingSetAccessToken } = useMutation<
-    SetAccessTokenResponse,
+    AxiosResponse<SetAccessTokenResponse>,
     AxiosError,
     { public_token: string; address: string }
   >(setAccessToken, {
-    onSuccess(data, variables, context) {
+    onSuccess({ data }) {
       sessionStorage.setItem("plaidItemId", data.plaidItemId);
-      onSuccess(data, variables, context);
+
+      queryClient.setQueryData(["get_onboarding_step", address], {
+        onboardingStep: data.user.onboardingStep,
+        plaidItemId: data.user.plaid_item_id,
+        cid: data.user.cid,
+      });
     },
     onError(error) {
       console.log(`axios.post() failed: ${error}`);

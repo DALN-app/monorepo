@@ -1,17 +1,7 @@
-import express, { Request, Response } from 'express';
-import { MongoClient } from "mongodb";
+import express, { Request, Response } from "express";
+import AWS from "aws-sdk";
 
-async function connectMongo() {
-  const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
-  const dbClient = new MongoClient(url);
-  const dbName = "daln";
-  await dbClient.connect();
-
-  const db = dbClient.db(dbName);
-  const collection = db.collection("users");
-
-  return collection;
-}
+const dynamoDB = new AWS.DynamoDB.DocumentClient({ region: "us-east-1" });
 
 interface SetOnboardingStep extends Request {
   query: {
@@ -21,21 +11,24 @@ interface SetOnboardingStep extends Request {
 
 const router = express.Router();
 
-router.delete('/:id', async (req: SetOnboardingStep, res: Response) => {
-  const collection = await connectMongo();
+router.delete("/:id", async (req: SetOnboardingStep, res: Response) => {
+  const params = {
+    TableName: "users",
+    Key: {
+      address: req.params.id,
+    },
+  };
 
-  const user = await collection.findOne({ address: req.params.id });
-
-  if (user) {
-    try {
-      await collection.findOneAndDelete({ address: req.params.id });
-
-      return res.status(201).send("User removed from collection");
-    } catch (e) {
-      return res.status(500).send("Error removing user from collection");
+  try {
+    const data = await dynamoDB.get(params).promise();
+    if (!data.Item) {
+      return res.status(400).send("Error, user doesn't exist");
     }
-  } else {
-    return res.status(400).send("Error, user doesn't exist");
+
+    await dynamoDB.delete(params).promise();
+    return res.status(201).send("User removed from collection");
+  } catch (e) {
+    return res.status(500).send("Error removing user from collection");
   }
 });
 

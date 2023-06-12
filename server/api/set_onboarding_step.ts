@@ -1,21 +1,8 @@
 import express, { Request, Response } from "express";
-import { MongoClient } from "mongodb";
-
+import { DynamoDB } from "aws-sdk";
 import { OnboardingSteps } from "../enums";
 
-async function connectMongo() {
-  const url = `mongodb+srv://admin:${process.env.DB_PASSWORD}@spndao.vjnl9b2.mongodb.net/?retryWrites=true&w=majority`;
-  const dbClient = new MongoClient(url);
-  const dbName = "daln";
-  await dbClient.connect();
-
-  const db = dbClient.db(dbName);
-  const collection = db.collection("users");
-
-  return collection;
-}
-
-const router = express.Router();
+const documentClient = new DynamoDB.DocumentClient({ region: "us-east-1" });
 
 interface SetOnboardingStep extends Request {
   body: {
@@ -26,6 +13,8 @@ interface SetOnboardingStep extends Request {
     id: string;
   };
 }
+
+const router = express.Router();
 
 router.post("/:id", async (req: SetOnboardingStep, res: Response) => {
   const { onboardingStep, cid } = req.body;
@@ -42,47 +31,30 @@ router.post("/:id", async (req: SetOnboardingStep, res: Response) => {
 
   if (onboardingStep && maybeOnboardingStep(onboardingStep)) {
     try {
-      const collection = await connectMongo();
-
-      const user = await collection.findOne({ address: req.query.id });
-      const currentStepIndex = Object.values(OnboardingSteps).indexOf(
-        user?.onboardingStep as OnboardingSteps
-      );
-      const newStepIndex =
-        Object.values(OnboardingSteps).indexOf(onboardingStep);
-      const lastStepIndex = Object.values(OnboardingSteps).length - 1;
-
-      if (newStepIndex === 0 && currentStepIndex === lastStepIndex) {
-        if (cid) {
-          await collection.findOneAndUpdate(
-            { address: req.query.id },
-            { $set: { onboardingStep, cid } }
-          );
-        } else {
-          await collection.findOneAndUpdate(
-            { address: req.query.id },
-            { $set: { onboardingStep } }
-          );
-        }
-        return res.status(201).send("Onboarding step reset to step 1");
-      } else if (newStepIndex <= currentStepIndex) {
-        return res
-          .status(400)
-          .send("Cannot set a step that is before the current step");
-      }
+      const params = {
+        TableName: "users",
+        Key: { address: req.params.id },
+        ReturnValues: "ALL_NEW",
+      };
 
       if (cid) {
-        await collection.findOneAndUpdate(
-          { address: req.query.id },
-          { $set: { onboardingStep, cid } }
-        );
+        params["UpdateExpression"] =
+          "SET onboardingStep = :onboardingStep, cid = :cid";
+        params["ExpressionAttributeValues"] = {
+          ":onboardingStep": onboardingStep,
+          ":cid": cid,
+        };
       } else {
-        await collection.findOneAndUpdate(
-          { address: req.query.id },
-          { $set: { onboardingStep } }
-        );
+        params["UpdateExpression"] = "SET onboardingStep = :onboardingStep";
+        params["ExpressionAttributeValues"] = {
+          ":onboardingStep": onboardingStep,
+        };
       }
-      return res.status(201).send("Onboarding step updated");
+
+      const updatedUser = await documentClient.update(params).promise();
+      return res.status(200).send({
+        user: updatedUser.Attributes,
+      });
     } catch (e) {
       return res.status(500).send("Error updating item");
     }
