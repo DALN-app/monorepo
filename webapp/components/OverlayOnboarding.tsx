@@ -143,7 +143,6 @@ function OverlayOnboarding() {
       ),
     {
       onSuccess: ({ data }) => {
-        console.log("onsuccessdata", data);
         queryClient.setQueryData(["get_onboarding_step", userAddress], {
           onboardingStep: data.user.onboardingStep,
           plaidItemId: data.user.plaid_item_id,

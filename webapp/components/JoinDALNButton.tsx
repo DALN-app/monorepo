@@ -49,11 +49,11 @@ export default function JoinDALNButton({
   const queryClient = useQueryClient();
 
   const { mutateAsync, isLoading: isLoadingSetAccessToken } = useMutation<
-    AxiosResponse<SetAccessTokenResponse>,
+    SetAccessTokenResponse,
     AxiosError,
     { public_token: string; address: string }
   >(setAccessToken, {
-    onSuccess({ data }) {
+    onSuccess: (data) => {
       sessionStorage.setItem("plaidItemId", data.plaidItemId);
 
       queryClient.setQueryData(["get_onboarding_step", address], {
