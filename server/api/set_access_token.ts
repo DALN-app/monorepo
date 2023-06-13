@@ -92,17 +92,17 @@ router.post("/", async (req: SetTokenProps, res: Response) => {
           res.status(500).send(error);
         });
     })
-    .catch((error) => {
-      console.log(`exchange public token failed: ${error}`);
-      console.log(`public_token: ${req.body.public_token}`);
-      res.status(500).send(error);
-    })
-    .finally(() => {
+    .then(() =>
       res.status(200).json({
         success: true,
         plaidItemId,
         user,
-      });
+      })
+    )
+    .catch((error) => {
+      console.log(`exchange public token failed: ${error}`);
+      console.log(`public_token: ${req.body.public_token}`);
+      res.status(500).send(error);
     });
 });
 
