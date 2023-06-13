@@ -1,7 +1,13 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { ChakraProvider, Flex } from "@chakra-ui/react";
-import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  RainbowKitProvider,
+  getDefaultWallets,
+  lightTheme,
+  Theme,
+} from "@rainbow-me/rainbowkit";
+import { AnimatePresence } from "framer-motion";
+import merge from "lodash.merge";
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
 import { ReactElement, ReactNode } from "react";
@@ -46,12 +52,22 @@ const wagmiClient = createClient({
   webSocketProvider,
 });
 
+const dalnRKitTheme = merge(lightTheme(), {
+  shadows: {
+    connectButton: "none",
+  },
+  colors: {
+    connectButtonInnerBackground: "none",
+    connectButtonText: "#2D3748",
+  },
+} as Theme);
+
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout || ((page) => page);
 
   return (
     <WagmiConfig client={wagmiClient}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains} theme={dalnRKitTheme}>
         <ChakraProvider theme={theme}>
           <AnimatePresence mode="wait" initial={false}>
             <QueryClientProvider client={queryClient}>

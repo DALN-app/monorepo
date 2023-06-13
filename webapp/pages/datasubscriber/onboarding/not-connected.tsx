@@ -1,23 +1,11 @@
-import { Box, Button, Center, Flex, HStack, VStack } from "@chakra-ui/react";
+import { Box, Button, Center, HStack, VStack } from "@chakra-ui/react";
 import Head from "next/head";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
-import { useAccount } from "wagmi";
 
 import OnBoardingCard from "~~/components/OnBoardingCard";
 import OnBoardingContentPiece from "~~/components/OnBoardingContentPiece";
 import OnBoardingHeaderComponent from "~~/components/OnBoardingHeaderComponent";
 import OnboardingGraphSvgComponent from "~~/components/svgComponents/OnboardingGraphSvgComponent";
 const OnboardingNotConnected = () => {
-  const { isConnected } = useAccount();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (isConnected) {
-      void router.push("/user/dashboard");
-    }
-  }, [isConnected, router]);
-
   return (
     <>
       <Head>
@@ -38,7 +26,7 @@ const OnboardingNotConnected = () => {
                 title="DALN"
                 description="Harvest data insights & stay compliant"
               />
-              <Button colorScheme="blue" size="md">
+              <Button colorScheme="purple" size="md">
                 Coming soon
               </Button>
             </VStack>

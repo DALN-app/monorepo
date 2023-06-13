@@ -1,4 +1,5 @@
 import {
+  Box,
   Card,
   CardBody,
   CardHeader,
@@ -7,6 +8,7 @@ import {
   Heading,
   SimpleGrid,
 } from "@chakra-ui/react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { BigNumber } from "ethers";
 import Head from "next/head";
 import { useAccount } from "wagmi";
@@ -46,7 +48,17 @@ const Dashboard: NextPageWithLayout = () => {
           >
             <Card w="full">
               <CardHeader>
-                <Flex justifyContent="flex-end" alignItems="center">
+                <Flex justifyContent="space-between" alignItems="center" mb={3}>
+                  <Box
+                    sx={{
+                      button: {
+                        border: "1px solid #E2E8F0 !important",
+                      },
+                    }}
+                  >
+                    <ConnectButton />
+                  </Box>
+
                   <BurnSBT tokenId={userTokenIdQuery.data} />
                 </Flex>
 

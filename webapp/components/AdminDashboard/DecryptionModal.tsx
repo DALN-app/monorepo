@@ -79,10 +79,20 @@ function DecryptionModal({ tokenInfos, ...props }: DecryptionModalProps) {
           >
             Cancel
           </Button>
-          <Button size={"lg"} width={"150px"} onClick={onConfirm}>
+          <Button
+            size={"lg"}
+            width={"150px"}
+            onClick={onConfirm}
+            isDisabled={decryptMutation.isLoading || decryptMutation.isError}
+          >
             Confirm
           </Button>
         </ModalFooter>
+        {decryptMutation.isError && (
+          <Text color="red.500" textAlign="center">
+            {decryptMutation.error?.message}
+          </Text>
+        )}
       </ModalContent>
     </Modal>
   );
