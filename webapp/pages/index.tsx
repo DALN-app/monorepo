@@ -125,19 +125,19 @@ const Home = () => {
               />
             </Box>
             <Text mt={4} mb={20} fontSize="xl">
-              Monetizing credit card data for a future data economy
+              A data DAO for monetizing credit card transaction data
             </Text>
             <Flex w="full" maxW="4xl">
               <StyledLinkBox href="/user/dashboard" marginRight={10}>
                 <RoleOptionComponent
                   title="End users"
-                  description="Have true ownership and of your data and get a reward whenever your data is decrypted"
+                  description="Have true ownership of your data and get rewards whenever your data is decrypted"
                   svgComponent={<EndUserOptionSvgComponent />}
                 />
               </StyledLinkBox>
               <StyledLinkBox href="/datasubscriber/onboarding/not-connected">
                 <RoleOptionComponent
-                  title="Data subscriber"
+                  title="Data Subscribers"
                   description="Access to valuable insights from rich consumer data while stay compliant without compromising privacy"
                   svgComponent={<DataSubscriberOptionSvgComponent />}
                 />

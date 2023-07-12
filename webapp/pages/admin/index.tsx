@@ -87,7 +87,7 @@ const OnboardingNotConnected = () => {
             <HStack mb={24}>
               <OnBoardingContentPiece
                 title="Access valuable data"
-                content="Access valuable data crowd-sourced by DAO members"
+                content="Access valuable insights from rich consumer data without compromising data privacy"
               />
               <OnBoardingContentPiece
                 title="Reward DAO members"
