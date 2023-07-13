@@ -138,7 +138,7 @@ const Home = () => {
               <StyledLinkBox href="/datasubscriber/onboarding/not-connected">
                 <RoleOptionComponent
                   title="Data Subscribers"
-                  description="Access to valuable insights from rich consumer data while stay compliant without compromising privacy"
+                  description="Access valuable insights from rich consumer data without compromising data privacy"
                   svgComponent={<DataSubscriberOptionSvgComponent />}
                 />
               </StyledLinkBox>
